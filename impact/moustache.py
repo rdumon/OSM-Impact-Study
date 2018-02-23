@@ -1,57 +1,31 @@
 import sys
 import psycopg2
 import decimal
+
+sys.path.insert(0, '../lib/')
+from db import DB
+
 import plotly
 import plotly.plotly as py
 import plotly.graph_objs as go
 plotly.tools.set_credentials_file(username='RomainDumon', api_key='4W9SerJqoMLaCR8e1abJ')
 
-
-DB_NAME='osmlondon'
-DB_USER='romaindumon'
-DB_PWD=''
-DB_HOST=''
-DB_PORT='5432'
-
 NODE_TYPE="Nodes"
 WAY_TYPE="Ways"
 RELATION_TYPE="Relations"
 
-class DB(object):
-    """encaspulate a database connection."""
-
-    def __init__(self):
-        try:
-            self.connection = psycopg2.connect("dbname='"+DB_NAME+"' user='"+DB_USER+"' password='"+DB_PWD+"' host='"+DB_HOST+"' port='"+DB_PORT+"'")
-        except:
-            print('\033[91m'+"Unable to connect to the database."+'\033[0m')
-            sys.exit(-1)
-        print("Connected to db!") 
-
-    def execute(self,commands=[]):
-
-        try:
-            cur = self.connection.cursor()
-            # create table one by one
-            for command in commands:
-                cur.execute(command)
-
-            result = cur.fetchall()
-
-            # close communication with the PostgreSQL database server
-            cur.close()
-            # commit the changes
-            self.connection.commit()
-            return result
-
-        except (Exception, psycopg2.DatabaseError) as error:
-            print('\033[91m'+"\nSQL ERROR:\n"+str(error)+'\033[0m')
-            sys.exit(-1)
+config = {
+    'DB_NAME':'osmlondon',
+    'DB_USER':'romaindumon',
+    'DB_PWD':'',
+    'DB_HOST':'',
+    'DB_PORT':'5432'
+}
 
 
 if __name__ == '__main__':
 
-	db = DB()
+	db = DB(config)
 	#Average number of edits per user per week for the six months before
 	#This query is location proof
 	expected_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '2008-10-01' AND created_at < '2009-04-01' AND latitude > 2414900 AND longitude > 514749580 AND latitude < -25770000 AND longitude < 515409360 GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '2008-10-01' AND created_at < '2009-04-01' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '2008-10-01' AND created_at < '2009-04-01' GROUP BY user_name)) SELECT (SUM(contributions)/26) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
