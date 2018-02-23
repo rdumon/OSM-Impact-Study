@@ -1,0 +1,9 @@
+{
+    "DB":{
+        "DB_NAME":"osmlondon",
+        "DB_USER":"Julien",
+        "DB_PWD":"",
+        "DB_HOST":"localhost",
+        "DB_PORT":"5433"
+    }
+}
