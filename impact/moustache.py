@@ -22,7 +22,9 @@ config = {
 if __name__ == '__main__':
 
 	db = DB(config)
-	abnormal_return_for_group(db,2,3,2)
+	x = [513694000,-4465000]
+	y = [516374000,1921000]
+	abnormal_return_for_group(db,'20081001','20090401','20090501',x,y)
 
 
 
