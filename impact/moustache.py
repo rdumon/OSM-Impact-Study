@@ -24,7 +24,7 @@ if __name__ == '__main__':
 	db = DB(config)
 	x = [513694000,-4465000]
 	y = [516374000,1921000]
-	abnormal_return_for_group(db,'20081001','20090401','20090501',x,y)
+	abnormal_return_for_group(db,'20111101','20120429','20121101',x,y)
 
 
 

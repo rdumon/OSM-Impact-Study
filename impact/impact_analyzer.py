@@ -67,30 +67,36 @@ def abnormal_return_for_group(db, date_before, event_date , date_after, x = None
 		data = []
 		for user in group:
 			data.append(abnormalReturnPerUser_one_month[user])
-			print(user + ' '+str(abnormalReturnPerUser_one_month[user]))
 		dataAbnormal.append(data)
-		print('Next Group')
 
+	group_1 = go.Box(
+    	y=dataAbnormal[0],
+    	name = 'Group 1',
+    	boxpoints = False,
+	)
+	group_2 = go.Box(
+    	y=dataAbnormal[1],
+    	name = 'Group 2',
+    	boxpoints = False,
+	)
+	group_3 = go.Box(
+    	y=dataAbnormal[2],
+    	name = 'Group 3',
+    	boxpoints = False,
+	)
+	group_4 = go.Box(
+    	y=dataAbnormal[3],
+    	name = 'Group 4',
+    	boxpoints = False,
+	)
+	group_5 = go.Box(
+    	y=dataAbnormal[4],
+    	name = 'Group 5',
+    	boxpoints = False,
+	)
 
-
-	trace0 = go.Box(
-    	y=dataAbnormal[0]
-	)
-	trace1 = go.Box(
-    	y=dataAbnormal[1]
-	)
-	trace2 = go.Box(
-    	y=dataAbnormal[2]
-	)
-	trace3 = go.Box(
-    	y=dataAbnormal[3]
-	)
-	trace4 = go.Box(
-    	y=dataAbnormal[4]
-	)
-
-	data = [trace0,trace1,trace2,trace3,trace4]
-	py.plot(data,filename='box-plots osm London')
+	data = [group_1,group_2,group_3,group_4,group_5]
+	py.plot(data,filename='box-plots osm London 3 month')
 
        
 
