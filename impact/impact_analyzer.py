@@ -98,6 +98,81 @@ def abnormal_return_for_group(db, date_before, event_date , date_after, x = None
 	data = [group_1,group_2,group_3,group_4,group_5]
 	py.plot(data,filename='box-plots osm London 3 month')
 
+#-------------------------------------------------------------------------------
+#Looking at evolution of deletes/creation and edits per day for a certain period
+#-------------------------------------------------------------------------------
+def contribution_types_gobal_analysis(db, date_before,event_date,date_after, x=None, y=None):
+
+	#Dates computations
+	event_date_convert = datetime.strptime(event_date,'%Y%m%d')
+	date_before_convert = datetime.strptime(date_before,'%Y%m%d')
+	date_after_convert = datetime.strptime(date_after,'%Y%m%d')
+
+	#work out evolution of delete contributions
+	delete_per_day = db.execute(["with C as((SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM nodes WHERE  created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.strftime('%Y-%m-%d')+"'"+ " AND deleted = true GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM ways WHERE  created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.strftime('%Y-%m-%d')+"'"+ " AND deleted = true GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM relations WHERE  created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.strftime('%Y-%m-%d')+"'"+ " AND deleted = true GROUP BY created_at)) SELECT created_at,SUM(contrib_deletion) as sum_contrib_deletion FROM C GROUP BY created_at ORDER BY created_at" ])
+
+	delete_per_day_x = []
+	delete_per_day_y = []
+	for a in delete_per_day:
+		delete_per_day_x.append((datetime.strptime(a[0],'%Y%m%d')).strftime('%Y-%m-%d'))
+		delete_per_day_y.append(a[1])
+
+
+	#work out evolution of creation contributions
+	creation_per_day = db.execute(["with C as((SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM nodes WHERE  created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.strftime('%Y-%m-%d')+"'"+ " AND version = 1 GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM ways WHERE  created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.strftime('%Y-%m-%d')+"'"+ " AND version = 1 GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM relations WHERE  created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.strftime('%Y-%m-%d')+"'"+ " AND version = 1 GROUP BY created_at)) SELECT created_at,SUM(contrib_deletion) as sum_contrib_deletion FROM C GROUP BY created_at ORDER BY created_at" ])
+
+	creation_per_day_x = []
+	creation_per_day_y = []
+	for a in creation_per_day:
+		creation_per_day_x.append((datetime.strptime(a[0],'%Y%m%d')).strftime('%Y-%m-%d'))
+		creation_per_day_y.append(a[1])
+
+	# #work out evolution of edits contributions
+	edits_per_day = db.execute(["with C as((SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM nodes WHERE  created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.strftime('%Y-%m-%d')+"'"+ " AND deleted = false AND version != 1 GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM ways WHERE  created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.strftime('%Y-%m-%d')+"'"+ " AND deleted = false AND version != 1 GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM relations WHERE  created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.strftime('%Y-%m-%d')+"'"+ " AND deleted = false AND version != 1 GROUP BY created_at)) SELECT created_at,SUM(contrib_deletion) as sum_contrib_deletion FROM C GROUP BY created_at ORDER BY created_at" ])
+
+	edits_per_day_x = []
+	edits_per_day_y = []
+	for a in edits_per_day:
+		edits_per_day_x.append((datetime.strptime(a[0],'%Y%m%d')).strftime('%Y-%m-%d'))
+		edits_per_day_y.append(a[1])
+
+	#plotting
+	trace1 = go.Scatter(
+    x = delete_per_day_x,
+    y = delete_per_day_y,
+    mode = 'lines+markers',
+    name = 'Number of Delete per Day'
+	)
+	
+	trace2 = go.Scatter(
+    x = creation_per_day_x,
+    y = creation_per_day_y,
+    mode = 'lines+markers',
+    name = 'Number of Creation per Day'
+	)
+	
+	trace3 = go.Scatter(
+    x = edits_per_day_x,
+    y = edits_per_day_y,
+    mode = 'lines+markers',
+    name = 'Number of Edits per Day'
+	)
+
+	trace4 = go.Scatter(
+    x = [event_date_convert.strftime('%Y-%m-%d'),event_date_convert.strftime('%Y-%m-%d')],
+    y = [-20,70000],
+    mode = 'lines',
+    name = 'Day of Import'
+	)
+
+	data = [ trace1 ,trace2, trace3, trace4]
+	py.plot(data, filename = 'edit_creation_delete for period')
+
+
+
+
+
+
        
 
 
