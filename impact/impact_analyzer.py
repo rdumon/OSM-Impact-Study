@@ -7,13 +7,13 @@ import plotly.graph_objs as go
 plotly.tools.set_credentials_file(username='RomainDumon', api_key='4W9SerJqoMLaCR8e1abJ')
 
 sys.path.insert(0, '../lib/')
-from db import DB
+# from db import DB
 
 #==================================================================================
 #=========All dates should have the format 'YearMonthDate' i.e. '20090311'=========
 #==================================================================================
 def abnormal_return_for_group(db, date_before, event_date , date_after, x = None, y = None):
-	
+
 	# If there is a location restriction
 	where_clause = ' '
 	if x!=None and y!=None and len(x) == 2 and len(y) == 2:
@@ -33,9 +33,9 @@ def abnormal_return_for_group(db, date_before, event_date , date_after, x = None
   	#This query is location proof
 	expected_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT (SUM(contributions)/"+str(diff_expected_user)+") as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
 
-	#Divides the expected user in 5 groups	
+	# Divides the expected user in 5 groups
 	expected = {}
-	groups = [[],[],[],[],[]] 
+	groups = [[],[],[],[],[]]
 
 	for a in expected_per_user:
 		if a[0] > 0.0 and a[0] < 0.4:
@@ -49,6 +49,7 @@ def abnormal_return_for_group(db, date_before, event_date , date_after, x = None
 		if a[0] > 400.0 and a[0] < 4000.0:
 			groups[4].append(a[1])
 		expected[a[1]] = a[0]
+		print(str(a[0]) + "'"+str(a[1])+"'" )
 
 
 	#query average contribution for each user in each group
@@ -96,10 +97,4 @@ def abnormal_return_for_group(db, date_before, event_date , date_after, x = None
 	)
 
 	data = [group_1,group_2,group_3,group_4,group_5]
-	py.plot(data,filename='box-plots osm London 3 month')
-
-       
-
-
-
-
+	py.plot(data,filename='box-plots Control group osm London 6 month')
