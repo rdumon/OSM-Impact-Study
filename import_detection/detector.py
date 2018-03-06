@@ -124,10 +124,20 @@ def detectWaysImport(db,cityName='',x=None,y=None):
 
     # If there is a location restriction
     where_clause = ''
+    ways_where_clause = ''
     if x!=None and y!=None and len(x) == 2 and len(y) == 2:
         where_clause = 'where (latitude > '+str(x[1])+' and longitude > '+str(x[0])+') and (latitude < '+str(y[1])+' and longitude < '+str(y[0])+')'
+        ways_where_clause = ' and count(case when (latitude > '+str(x[1])+' and longitude > '+str(x[0])+') and (latitude < '+str(y[1])+' and longitude < '+str(y[0])+') then 0 end) > 0 '
 
     # Queries
+    ways_query = 'select count(ways.id), user_name from ways_nodes JOIN ways ON ways.id = ways_nodes.id AND ways.version = ways_nodes.version'
+    ways_query += ' group by user_name having ( count(*)>1' + ways_where_clause +' )'
+
+    # TODO: add group by date 
+
+    print(ways_query)
+    sys.exit(-1)
+
     creation_date_query = 'select user_name, to_char(min(created_at),\'YYYYMMDD\') as created_at from nodes '+where_clause+' group by user_name'
     all_contribution_query = 'select to_char(created_at,\'YYYYMMDD\') as created_at, user_name, count(*) as contrib from nodes '+where_clause+' group by user_name, to_char(created_at,\'YYYYMMDD\')'
 

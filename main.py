@@ -1,6 +1,6 @@
 import sys
 import json
-import import_detection.detector
+from import_detection.detector import *
 from impact.impact_analyzer import *
 
 
@@ -19,5 +19,7 @@ db = DB(config['DB'])
 # y = [506677000,311696000]
 x = [513694000,-4465000]
 y = [516374000,1921000]
-detectImport(db,'London',x,y)
+# detectImport(db,'London',x,y)
+detectWaysImport(db,'London',x,y)
+
 # abnormal_return_for_group(db,'20110401','20111001','20120501',x,y)
