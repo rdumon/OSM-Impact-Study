@@ -33,24 +33,34 @@ def abnormal_return_for_group(db, date_before, event_date , date_after, x = None
   	#This query is location proof
 	expected_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT (SUM(contributions)/"+str(diff_expected_user)+") as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
 
+	# a[0]: nb contrib/semaine
+	# a[1]: user
+
+
 	# Divides the expected user in 5 groups
 	expected = {}
 	groups = [[],[],[],[],[]]
 
+	expected_per_user.sort(key= lambda x : int (x[0]))
 	for a in expected_per_user:
-		if a[0] > 0.0 and a[0] < 0.4:
-			groups[0].append(a[1])
-		if a[0] > 0.4 and a[0] < 4.0:
-			groups[1].append(a[1])
-		if a[0] > 4.0 and a[0] < 40.0:
-			groups[2].append(a[1])
-		if a[0] > 40.0 and a[0] < 400.0:
-			groups[3].append(a[1])
-		if a[0] > 400.0 and a[0] < 4000.0:
-			groups[4].append(a[1])
-		expected[a[1]] = a[0]
-		print(str(a[0]) + "'"+str(a[1])+"'" )
+		print(str(a[0]) + ' ' +str(a[1]))
 
+	i=0
+	while (i<(len(expected_per_user) * 0.2)):
+		groups[0].append(expected_per_user[i][1])
+		i+=1
+	while ((len(expected_per_user) * 0.2)<=i and i < (len(expected_per_user) * 0.4)):
+		groups[1].append(expected_per_user[i][1])
+		i+=1
+	while( (len(expected_per_user) * 0.4 )<=i and i< (len(expected_per_user) * 0.6)):
+		groups[2].append(expected_per_user[i][1])
+		i+=1
+	while ((len(expected_per_user) * 0.6)<=i and i<(len(expected_per_user) * 0.8)):
+		groups[3].append(expected_per_user[i][1])
+		i+=1
+	while((len(expected_per_user) * 0.8)<=i and i<(len(expected_per_user))):
+		groups[4].append(expected_per_user[i][1])
+		i+=1
 
 	#query average contribution for each user in each group
 	actual_one_month = {}
@@ -168,3 +178,87 @@ def contribution_types_gobal_analysis(db, date_before,event_date,date_after, x=N
 
 	data = [ trace1 ,trace2, trace3, trace4]
 	py.plot(data, filename = 'edit_creation_delete for period')
+
+
+#-------------------------------------------------------------------------------
+#-----------Impact of an import on creation to maintenance ratio----------------
+#-----------Date before is included and event_date is not included--------------
+#-------------------------------------------------------------------------------
+def impact_import_creationtomaintenance_ratio(db, date_before, event_date, Graph_title):
+
+	#Dates computations
+	event_date_convert = datetime.strptime(event_date,'%Y%m%d')
+	date_before_convert = datetime.strptime(date_before,'%Y%m%d')
+
+	#The number of weeks between event date and the date before the event
+	diff_expected_user = (event_date_convert - date_before_convert).days /7
+
+	#Average number of edits per user per week for the six months before
+  	#This query is location proof
+	expected_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+"' GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT (SUM(contributions)/"+str(diff_expected_user)+") as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
+
+
+	#Divides the expected user in 5 groups	
+	groups = [[],[],[],[],[]] 
+
+	for a in expected_per_user:
+		if a[0] > 0.0 and a[0] < 0.4:
+			groups[0].append(a[1])
+		if a[0] > 0.4 and a[0] < 4.0:
+			groups[1].append(a[1])
+		if a[0] > 4.0 and a[0] < 40.0:
+			groups[2].append(a[1])
+		if a[0] > 40.0 and a[0] < 400.0:
+			groups[3].append(a[1])
+		if a[0] > 400.0 and a[0] < 4000.0:
+			groups[4].append(a[1])
+
+	#dictionaries recording the creates and total contribs of each user 
+	dict_user_total_contribs = {}
+	dict_user_creates = {}
+
+	contribs_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+"' GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
+
+	for a in contribs_per_user:
+		dict_user_total_contribs[a[1]] = a[0]
+
+
+	creates_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+"' AND version = 1 GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' AND version = 1 GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "'AND version = 1 GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
+
+	for a in creates_per_user:
+		dict_user_creates[a[1]] = a[0]
+
+	creations_group = [0,0,0,0,0]
+	maintenance_group = [0,0,0,0,0]
+	total_contribs_group = [0,0,0,0,0]
+
+	for i in range(0,5):
+		for user in groups[i]:
+			creations_group[i] += dict_user_creates.get(user,decimal.Decimal(0.0))
+			maintenance_group[i] += dict_user_total_contribs.get(user,decimal.Decimal(0.0)) - dict_user_creates.get(user,decimal.Decimal(0.0))
+			total_contribs_group[i] += dict_user_total_contribs.get(user,decimal.Decimal(0.0))
+
+	for i in range(0,5):
+		creations_group[i] /=  total_contribs_group[i]
+		maintenance_group[i] /=  total_contribs_group[i]
+
+	trace1 = go.Bar(
+    	x=['Group 1', 'Group 2', 'Group 3', 'Group 4', 'Group 5'],
+    	y=creations_group,
+    	name='Creates'
+	)
+	trace2 = go.Bar(
+    	x=['Group 1', 'Group 2', 'Group 3', 'Group 4', 'Group 5'],
+    	y=maintenance_group,
+    	name='Maintenance'
+	)
+
+	data = [trace1, trace2]
+	layout = go.Layout(
+    	barmode='stack'
+	)
+
+	fig = go.Figure(data=data, layout=layout)
+	py.plot(fig, filename='Maintenance vs Creations ' + Graph_title)
+
+
