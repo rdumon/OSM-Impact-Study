@@ -33,24 +33,34 @@ def abnormal_return_for_group(db, date_before, event_date , date_after, x = None
   	#This query is location proof
 	expected_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT (SUM(contributions)/"+str(diff_expected_user)+") as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
 
+	# a[0]: nb contrib/semaine
+	# a[1]: user
+
+
 	# Divides the expected user in 5 groups
 	expected = {}
 	groups = [[],[],[],[],[]]
 
+	expected_per_user.sort(key= lambda x : int (x[0]))
 	for a in expected_per_user:
-		if a[0] > 0.0 and a[0] < 0.4:
-			groups[0].append(a[1])
-		if a[0] > 0.4 and a[0] < 4.0:
-			groups[1].append(a[1])
-		if a[0] > 4.0 and a[0] < 40.0:
-			groups[2].append(a[1])
-		if a[0] > 40.0 and a[0] < 400.0:
-			groups[3].append(a[1])
-		if a[0] > 400.0 and a[0] < 4000.0:
-			groups[4].append(a[1])
-		expected[a[1]] = a[0]
-		print(str(a[0]) + "'"+str(a[1])+"'" )
+		print(str(a[0]) + ' ' +str(a[1]))
 
+	i=0
+	while (i<(len(expected_per_user) * 0.2)):
+		groups[0].append(expected_per_user[i][1])
+		i+=1
+	while ((len(expected_per_user) * 0.2)<=i and i < (len(expected_per_user) * 0.4)):
+		groups[1].append(expected_per_user[i][1])
+		i+=1
+	while( (len(expected_per_user) * 0.4 )<=i and i< (len(expected_per_user) * 0.6)):
+		groups[2].append(expected_per_user[i][1])
+		i+=1
+	while ((len(expected_per_user) * 0.6)<=i and i<(len(expected_per_user) * 0.8)):
+		groups[3].append(expected_per_user[i][1])
+		i+=1
+	while((len(expected_per_user) * 0.8)<=i and i<(len(expected_per_user))):
+		groups[4].append(expected_per_user[i][1])
+		i+=1
 
 	#query average contribution for each user in each group
 	actual_one_month = {}

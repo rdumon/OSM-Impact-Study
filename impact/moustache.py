@@ -12,9 +12,9 @@ RELATION_TYPE="Relations"
 
 config = {
     'DB_NAME':'osmlondon',
-    'DB_USER':'romaindumon',
-    'DB_PWD':'',
-    'DB_HOST':'',
+    'DB_USER':'postgres',
+    'DB_PWD':'user',
+    'DB_HOST':'localhost',
     'DB_PORT':'5432'
 }
 
@@ -25,7 +25,7 @@ if __name__ == '__main__':
 	x = [513694000,-4465000]
 	y = [516374000,1921000]
 	# abnormal_return_for_group(db,'20111101','20120429','20121101',x,y)
-	contribution_types_gobal_analysis(db,'20111101','20120429','20121101',x,y)
+	abnormal_return_for_group(db,'20111101','20120429','20121101',x,y)
 
 
 
