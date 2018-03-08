@@ -260,15 +260,21 @@ def find_contribution_type_of_import(db, iMport = []):
     user_name = iMport[1] 
     date_convert = iMport[0]
 
-    lists = list_of_amenities
+    query = "SELECT json_agg(tags) as tags, id FROM Nodes WHERE created_at > '" + date_convert.strftime('%Y-%m-%d') + " 00:00:00' AND created_at < '" + date_convert.strftime('%Y-%m-%d') + " 24:00:00' AND user_name = '"+user_name+"' GROUP BY id limit 10"
+
+    print(query)
 
     #do not need to worry about version number (we assume that import is only creation or one time edits to change twice a node)
-    amenity_type_of_all_nodes_of_import = db.execute(["SELECT json_agg(tags) as tags, id FROM Nodes WHERE created_at > '" + date_convert.strftime('%Y-%m-%d') + " 00:00:00' AND created_at < '" + date_convert.strftime('%Y-%m-%d') + " 24:00:00' AND user_name = '"+user_name+"' GROUP BY id limit 10"])
+    amenity_type_of_all_nodes_of_import = db.execute([query])
 
     amenities_of_imports = []
 
-    for object in amenity_type_of_all_nodes_of_import:
-        amenities_of_imports.append(object)
+    # print(amenity_type_of_all_nodes_of_import[0][0]["note"])
 
-    for a in amenities_of_imports:
-        print(a)
+    for object in amenity_type_of_all_nodes_of_import:
+        for item in object[0]:
+            print(item)
+            for a in item:
+                print(a)
+
+
