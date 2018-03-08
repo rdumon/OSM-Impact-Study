@@ -5,6 +5,7 @@ sys.path.insert(0, '/../')
 
 from operator import itemgetter
 from datetime import datetime
+from lib.amenities import *
 
 import plotly.plotly as py
 import plotly.graph_objs as go
@@ -128,7 +129,7 @@ def detectImport(db,cityName='',x=None,y=None):
 
     data_graph = [trace0, trace1,trace2,trace3,trace4]
 
-    py.plot(data_graph, filename=('Import Detection '+cityName))
+    # py.plot(data_graph, filename=('Import Detection '+cityName))
 
     detected_imports = []
     for i in range(0,len(daily_best_contrib['value'])):
@@ -251,3 +252,23 @@ def detectWaysImport(db,cityName='',x=None,y=None):
     data_graph = [trace0, trace1,trace2,trace3]
 
     py.plot(data_graph, filename=('Import Ways Detection '+cityName))
+
+
+
+def find_contribution_type_of_import(db, iMport = []):
+
+    user_name = iMport[1] 
+    date_convert = iMport[0]
+
+    lists = list_of_amenities
+
+    #do not need to worry about version number (we assume that import is only creation or one time edits to change twice a node)
+    amenity_type_of_all_nodes_of_import = db.execute(["SELECT json_agg(tags) as tags, id FROM Nodes WHERE created_at > '" + date_convert.strftime('%Y-%m-%d') + " 00:00:00' AND created_at < '" + date_convert.strftime('%Y-%m-%d') + " 24:00:00' AND user_name = '"+user_name+"' GROUP BY id limit 10"])
+
+    amenities_of_imports = []
+
+    for object in amenity_type_of_all_nodes_of_import:
+        amenities_of_imports.append(object)
+
+    for a in amenities_of_imports:
+        print(a)
