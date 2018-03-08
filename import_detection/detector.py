@@ -71,6 +71,7 @@ def detectImport(db,cityName='',x=None,y=None):
 
     daily_best_new_user_contrib = {'value':[], 'date':[], 'user':[]}
 
+
     graph_date = []
     graph_val = []
     graph_text = []
@@ -88,6 +89,10 @@ def detectImport(db,cityName='',x=None,y=None):
             current_max = item[2]
             current_max_user = item[1]
 
+    average_new_user = sum(daily_best_new_user_contrib['value']) / len(daily_best_new_user_contrib['value'])
+    average = sum(daily_best_contrib['value']) / len(daily_best_contrib['value'])
+    import_limit = average * 20
+
     # Now we plot all graphs
     trace0 = go.Scatter(
         x = daily_best_new_user_contrib['date'],
@@ -98,7 +103,7 @@ def detectImport(db,cityName='',x=None,y=None):
 
     trace1 = go.Scatter(
         x = daily_best_new_user_contrib['date'],
-        y = [sum(daily_best_new_user_contrib['value']) / len(daily_best_new_user_contrib['value'])] * len(daily_best_new_user_contrib['date']),
+        y = [average_new_user] * len(daily_best_new_user_contrib['date']),
         name = "Average daily best new user contribution"
     )
 
@@ -111,14 +116,27 @@ def detectImport(db,cityName='',x=None,y=None):
 
     trace3 = go.Scatter(
         x = daily_best_contrib['date'],
-        y = [sum(daily_best_contrib['value']) / len(daily_best_contrib['value'])] * len(daily_best_contrib['value']),
+        y = [average] * len(daily_best_contrib['value']),
         name = "Average daily best user contribution"
     )
 
-    data_graph = [trace0, trace1,trace2,trace3]
+    trace4 = go.Scatter(
+        x = daily_best_contrib['date'],
+        y = [import_limit] * len(daily_best_contrib['value']),
+        name = "Import Limit"
+    )
+
+    data_graph = [trace0, trace1,trace2,trace3,trace4]
 
     py.plot(data_graph, filename=('Import Detection '+cityName))
 
+    detected_imports = []
+    for i in range(0,len(daily_best_contrib['value'])):
+        print(str(daily_best_contrib['value'][i]) + ' vs '+ str(import_limit))
+        if daily_best_contrib['value'][i] >= import_limit:
+            detected_imports.append([daily_best_contrib['date'][i],daily_best_contrib['user'][i]])
+
+    return detected_imports
 
 def detectWaysImport(db,cityName='',x=None,y=None):
 
@@ -133,7 +151,7 @@ def detectWaysImport(db,cityName='',x=None,y=None):
     ways_query = 'select count(ways.id), user_name from ways_nodes JOIN ways ON ways.id = ways_nodes.id AND ways.version = ways_nodes.version'
     ways_query += ' group by user_name having ( count(*)>1' + ways_where_clause +' )'
 
-    # TODO: add group by date 
+    # TODO: add group by date
 
     print(ways_query)
     sys.exit(-1)
