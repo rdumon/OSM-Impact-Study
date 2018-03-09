@@ -1,14 +1,13 @@
 import sys
 import json
-
-sys.path.insert(0, '/../')
+import plotly.plotly as py
+import plotly.graph_objs as go
 
 from operator import itemgetter
 from datetime import datetime
 from lib.amenities import *
 
-import plotly.plotly as py
-import plotly.graph_objs as go
+
 
 # ========== Code ================
 
@@ -262,19 +261,31 @@ def find_contribution_type_of_import(db, iMport = []):
 
     query = "SELECT json_agg(tags) as tags, id FROM Nodes WHERE created_at > '" + date_convert.strftime('%Y-%m-%d') + " 00:00:00' AND created_at < '" + date_convert.strftime('%Y-%m-%d') + " 24:00:00' AND user_name = '"+user_name+"' GROUP BY id limit 10"
 
-    print(query)
-
-    #do not need to worry about version number (we assume that import is only creation or one time edits to change twice a node)
+    #do not need to worry about version number (we assume that import is only creation or one time edits to change twice a node) List of tuples
     amenity_type_of_all_nodes_of_import = db.execute([query])
 
-    amenities_of_imports = []
+    dict_amenities = build_dictionary_of_amenities()
 
-    # print(amenity_type_of_all_nodes_of_import[0][0]["note"])
+    for tuple in amenity_type_of_all_nodes_of_import:
+        for json in tuple[0]:
+            for item in json:
+                try:
+                    dict_amenities[json[item]] += 1
+                except KeyError:
+                    continue
 
-    for object in amenity_type_of_all_nodes_of_import:
-        for item in object[0]:
-            print(item)
-            for a in item:
-                print(a)
+    max_value = 0
+    import_type = "osm"
+
+    for a in dict_amenities:
+        if dict_amenities[a] > max_value:
+            import_type = a
+
+
+    return import_type
+
+
+
+
 
 
