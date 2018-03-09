@@ -1,13 +1,13 @@
 import sys
 import json
-
-sys.path.insert(0, '/../')
+import plotly.plotly as py
+import plotly.graph_objs as go
 
 from operator import itemgetter
 from datetime import datetime
+from lib.amenities import *
 
-import plotly.plotly as py
-import plotly.graph_objs as go
+
 
 # ========== Code ================
 
@@ -71,6 +71,7 @@ def detectImport(db,cityName='',x=None,y=None):
 
     daily_best_new_user_contrib = {'value':[], 'date':[], 'user':[]}
 
+
     graph_date = []
     graph_val = []
     graph_text = []
@@ -88,6 +89,10 @@ def detectImport(db,cityName='',x=None,y=None):
             current_max = item[2]
             current_max_user = item[1]
 
+    average_new_user = sum(daily_best_new_user_contrib['value']) / len(daily_best_new_user_contrib['value'])
+    average = sum(daily_best_contrib['value']) / len(daily_best_contrib['value'])
+    import_limit = average * 20
+
     # Now we plot all graphs
     trace0 = go.Scatter(
         x = daily_best_new_user_contrib['date'],
@@ -98,7 +103,7 @@ def detectImport(db,cityName='',x=None,y=None):
 
     trace1 = go.Scatter(
         x = daily_best_new_user_contrib['date'],
-        y = [sum(daily_best_new_user_contrib['value']) / len(daily_best_new_user_contrib['value'])] * len(daily_best_new_user_contrib['date']),
+        y = [average_new_user] * len(daily_best_new_user_contrib['date']),
         name = "Average daily best new user contribution"
     )
 
@@ -111,14 +116,27 @@ def detectImport(db,cityName='',x=None,y=None):
 
     trace3 = go.Scatter(
         x = daily_best_contrib['date'],
-        y = [sum(daily_best_contrib['value']) / len(daily_best_contrib['value'])] * len(daily_best_contrib['value']),
+        y = [average] * len(daily_best_contrib['value']),
         name = "Average daily best user contribution"
     )
 
-    data_graph = [trace0, trace1,trace2,trace3]
+    trace4 = go.Scatter(
+        x = daily_best_contrib['date'],
+        y = [import_limit] * len(daily_best_contrib['value']),
+        name = "Import Limit"
+    )
 
-    py.plot(data_graph, filename=('Import Detection '+cityName))
+    data_graph = [trace0, trace1,trace2,trace3,trace4]
 
+    # py.plot(data_graph, filename=('Import Detection '+cityName))
+
+    detected_imports = []
+    for i in range(0,len(daily_best_contrib['value'])):
+        print(str(daily_best_contrib['value'][i]) + ' vs '+ str(import_limit))
+        if daily_best_contrib['value'][i] >= import_limit:
+            detected_imports.append([daily_best_contrib['date'][i],daily_best_contrib['user'][i]])
+
+    return detected_imports
 
 def detectWaysImport(db,cityName='',x=None,y=None):
 
@@ -133,7 +151,7 @@ def detectWaysImport(db,cityName='',x=None,y=None):
     ways_query = 'select count(ways.id), user_name from ways_nodes JOIN ways ON ways.id = ways_nodes.id AND ways.version = ways_nodes.version'
     ways_query += ' group by user_name having ( count(*)>1' + ways_where_clause +' )'
 
-    # TODO: add group by date 
+    # TODO: add group by date
 
     print(ways_query)
     sys.exit(-1)
@@ -233,3 +251,41 @@ def detectWaysImport(db,cityName='',x=None,y=None):
     data_graph = [trace0, trace1,trace2,trace3]
 
     py.plot(data_graph, filename=('Import Ways Detection '+cityName))
+
+
+
+def find_contribution_type_of_import(db, iMport = []):
+
+    user_name = iMport[1] 
+    date_convert = iMport[0]
+
+    query = "SELECT json_agg(tags) as tags, id FROM Nodes WHERE created_at > '" + date_convert.strftime('%Y-%m-%d') + " 00:00:00' AND created_at < '" + date_convert.strftime('%Y-%m-%d') + " 24:00:00' AND user_name = '"+user_name+"' GROUP BY id limit 10"
+
+    #do not need to worry about version number (we assume that import is only creation or one time edits to change twice a node) List of tuples
+    amenity_type_of_all_nodes_of_import = db.execute([query])
+
+    dict_amenities = build_dictionary_of_amenities()
+
+    for tuple in amenity_type_of_all_nodes_of_import:
+        for json in tuple[0]:
+            for item in json:
+                try:
+                    dict_amenities[json[item]] += 1
+                except KeyError:
+                    continue
+
+    max_value = 0
+    import_type = "osm"
+
+    for a in dict_amenities:
+        if dict_amenities[a] > max_value:
+            import_type = a
+
+
+    return import_type
+
+
+
+
+
+

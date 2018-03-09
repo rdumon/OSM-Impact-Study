@@ -25,14 +25,12 @@ if __name__ == '__main__':
 	x = [513694000,-4465000]
 	y = [516374000,1921000]
 	# abnormal_return_for_group(db,'20111101','20120429','20121101',x,y)
-<<<<<<< HEAD
+
 	abnormal_return_for_group(db,'20111101','20120429','20121101',x,y)
-=======
+
 	# contribution_types_gobal_analysis(db,'20111101','20120429','20121101',x,y)
 	impact_import_creationtomaintenance_ratio(db,'20111101','20120429', 'Before')
 	impact_import_creationtomaintenance_ratio(db,'20110430','20121101', 'After')
-
->>>>>>> 603df041034944a2ce53488ce459a24899cfb298
 
 
 
