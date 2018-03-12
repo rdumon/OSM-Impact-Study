@@ -2,9 +2,10 @@ import sys
 import json
 import plotly.plotly as py
 import plotly.graph_objs as go
+import operator
 
 from operator import itemgetter
-from datetime import datetime
+import datetime
 from lib.amenities import *
 
 
@@ -254,35 +255,63 @@ def detectWaysImport(db,cityName='',x=None,y=None):
 
 
 
-def find_contribution_type_of_import(db, iMport = []):
+def find_contribution_type_of_import(db, iMport = [], table =""):
 
     user_name = iMport[1] 
     date_convert = iMport[0]
 
-    query = "SELECT json_agg(tags) as tags, id FROM Nodes WHERE created_at > '" + date_convert.strftime('%Y-%m-%d') + " 00:00:00' AND created_at < '" + date_convert.strftime('%Y-%m-%d') + " 24:00:00' AND user_name = '"+user_name+"' GROUP BY id limit 10"
+    query = "SELECT json_agg(tags) as tags, id FROM "+table+" WHERE created_at > '" + date_convert.strftime('%Y-%m-%d') + " 00:00:00' AND created_at < '" + date_convert.strftime('%Y-%m-%d') + " 24:00:00' AND user_name = '"+user_name+"' GROUP BY id  "
 
     #do not need to worry about version number (we assume that import is only creation or one time edits to change twice a node) List of tuples
     amenity_type_of_all_nodes_of_import = db.execute([query])
 
-    dict_amenities = build_dictionary_of_amenities()
+    dict_amenities_right_fields = build_dictionary_of_amenities()
+    dict_amenities_left_fields = build_dictionary_of_amenities()
+
+    unidentified = 0
 
     for tuple in amenity_type_of_all_nodes_of_import:
         for json in tuple[0]:
             for item in json:
                 try:
-                    dict_amenities[json[item]] += 1
+                    dict_amenities_right_fields[json[item].lower()] += 1
                 except KeyError:
+                    unidentified += 1
                     continue
 
-    max_value = 0
-    import_type = "osm"
+    for tuple in amenity_type_of_all_nodes_of_import:
+        for json in tuple[0]:
+            for item in json:
+                try:
+                    dict_amenities_left_fields[item.lower()] += 1
+                except KeyError:
+                    unidentified += 1
+                    continue
 
-    for a in dict_amenities:
-        if dict_amenities[a] > max_value:
-            import_type = a
+    list_top = []
+    list_top.append(dict(sorted(dict_amenities_right_fields.iteritems(), key=operator.itemgetter(1), reverse=True)[:5]))
+    list_top.append(dict(sorted(dict_amenities_left_fields.iteritems(), key=operator.itemgetter(1), reverse=True)[:5]))
+
+    print("Top 5 for the left fields of the tags:")
+    print(dict(sorted(dict_amenities_right_fields.iteritems(), key=operator.itemgetter(1), reverse=True)[:3]))
+    print("Top 5 for the right fields of the tags:")
+    print(dict(sorted(dict_amenities_left_fields.iteritems(), key=operator.itemgetter(1), reverse=True)[:3]))
+    print("Unidentified fields were ignored : " + str(unidentified))
+
+    return list_top
+
+def imports_report(db, imports= []):
+
+    for iMport in imports:
+        print("#################################################################################################")
+        print("The import happened in "+ iMport[0].strftime('%Y-%m-%d') + " and was done by user : "+ iMport[1])
+        print("Analysing its nodes: ".upper())
+        find_contribution_type_of_import(db, iMport, "nodes")
+        print("Analysing its ways: ".upper())
+        find_contribution_type_of_import(db, iMport, "ways")
+        
 
 
-    return import_type
 
 
 

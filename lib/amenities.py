@@ -17,7 +17,7 @@ def build_dictionary_of_amenities():
 	dictionary_amenities = {} 
 
 	for object in data["data"]:
-		dictionary_amenities[object["value"]] = 0
+		dictionary_amenities[object["value"].lower()] = 0
 
 	return dictionary_amenities
 

@@ -6,6 +6,7 @@ import plotly
 import plotly.plotly as py
 import plotly.graph_objs as go
 import operator
+import numpy as np
 plotly.tools.set_credentials_file(username='aoussbai', api_key='uWPqQZwnbe5MgCrfqk3V')
 
 sys.path.insert(0, '../lib/')
@@ -89,27 +90,27 @@ def abnormal_return_for_group(db, groups, date_before, event_date , date_after, 
 		dataAbnormal.append(data)
 
 	group_1 = go.Box(
-    	y=dataAbnormal[0],
+    	y=trim_95Perc_rule(dataAbnormal[0]),
     	name = 'Group 1',
     	boxpoints = False,
 	)
 	group_2 = go.Box(
-    	y=dataAbnormal[1],
+    	y=trim_95Perc_rule(dataAbnormal[1]),
     	name = 'Group 2',
     	boxpoints = False,
 	)
 	group_3 = go.Box(
-    	y=dataAbnormal[2],
+    	y=trim_95Perc_rule(dataAbnormal[2]),
     	name = 'Group 3',
     	boxpoints = False,
 	)
 	group_4 = go.Box(
-    	y=dataAbnormal[3],
+    	y=trim_95Perc_rule(dataAbnormal[3]),
     	name = 'Group 4',
     	boxpoints = False,
 	)
 	group_5 = go.Box(
-    	y=dataAbnormal[4],
+    	y=trim_95Perc_rule(dataAbnormal[4]),
     	name = 'Group 5',
     	boxpoints = False,
 	)
@@ -635,6 +636,35 @@ def group_analyser(db, date_before, event_date , x = None, y = None):
 		i+=1
 
 	return groups
+
+#================================================================================================
+#=========Trips a list and returns a list with the bottom 2% remove and upper 2% removed=========
+#================================================================================================
+def trim_95Perc_rule(data):
+
+	size_of_list = len(data)
+
+	if size_of_list < 10:
+		return data
+
+	std_dev = np.std(data)
+	mean = np.mean(data)
+
+	factor = 2
+	false_positive = []
+	for num in data:
+		if not abs(num - mean) <= factor * std_dev:
+			data.remove(num)
+			false_positive.append(num)
+
+	print("Disregarded Data Points: ")
+	print(false_positive)
+			
+	return data
+
+	
+
+
 
 
 
