@@ -1,4 +1,5 @@
 import sys
+import json
 import decimal
 from datetime import datetime
 import plotly
@@ -9,6 +10,30 @@ plotly.tools.set_credentials_file(username='aoussbai', api_key='uWPqQZwnbe5MgCrf
 
 sys.path.insert(0, '../lib/')
 # from db import DB
+
+
+
+
+#----------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------
+#SET OF VARIABLES AND FUNCTIONS USEFUL TO LOOK AT AMENITIES
+#----------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------
+
+
+def build_dictionary_of_amenities(data):
+
+	dictionary_amenities = {} 
+
+	for object in data["data"]:
+		dictionary_amenities[object["value"]] = 0
+
+	return dictionary_amenities
+
+
+
+
+
 
 #-----------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------------
@@ -238,8 +263,8 @@ def contribution_amenity_type_analysis(db,groups, date_before,event_date,date_af
 
 
 	amenity_type_per_user = db.execute([" SELECT json_agg(tags) as tags, user_name FROM nodes WHERE tags ? 'amenity' AND created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY tags #>> '{amenity}', user_name"])
-
-
+    
+    
 	dict1 = {}
 	dict2 = {}
 	dict3 = {}
@@ -326,7 +351,223 @@ def contribution_amenity_type_analysis(db,groups, date_before,event_date,date_af
     
 
     
-   
+#-------------------------------------------------------------------------------------
+#Looking at evolution of the most edited amenity types per user for a certain period
+#-------------------------------------------------------------------------------------
+def contribution_amenity_type_analysisv2(db,groups, date_before,event_date,date_after, x=None, y=None):
+
+	#Dates computations
+	event_date_convert = datetime.strptime(event_date,'%Y%m%d')
+	date_before_convert = datetime.strptime(date_before,'%Y%m%d')
+	date_after_convert = datetime.strptime(date_after,'%Y%m%d')
+
+	where_clause = ' '
+	if x!=None and y!=None and len(x) == 2 and len(y) == 2:
+		where_clause += 'AND latitude > '+str(x[1])+' AND longitude > '+str(x[0])+' AND latitude < '+str(y[1])+' AND longitude < '+str(y[0])
+
+
+	amenity_type_per_user_before = db.execute([" SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at >= '" + date_before_convert.strftime('%Y-%m-%d') +"' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name"])
+	amenity_type_per_user_after = db.execute([" SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at <= '" + date_after_convert.strftime('%Y-%m-%d') +"' AND created_at > '" + event_date_convert.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name"])
+	
+	
+	with open('/Users/aousssbai/Desktop/OSM-Impact-Study/lib/amenities.json') as data_file:
+		data = json.load(data_file)  
+	refDict = build_dictionary_of_amenities(data)  
+	forbiddenEntries = {"yes", "no", "FIXME", "2"}
+
+
+
+	dict1 = {}
+	dict2 = {}
+	dict3 = {}
+	dict4 = {}
+	dict5 = {}
+
+
+	for fields in amenity_type_per_user_before:
+		if fields[1] in groups[0]:
+			for tag in fields[0]:
+					for data in tag:
+						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
+							if tag[data] in dict1: 
+								dict1[tag[data]]+=1
+							else: 
+								dict1[tag[data]] =1
+		if fields[1] in groups[1]:
+			for tag in fields[0]:
+					for data in tag:
+						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
+							if tag[data] in dict2: 
+								dict2[tag[data]]+=1
+							else: 
+								dict2[tag[data]] =1
+		if fields[1] in groups[2]:
+			for tag in fields[0]:
+					for data in tag:
+						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
+							if tag[data] in dict3: 
+								dict3[tag[data]]+=1
+							else: 
+								dict3[tag[data]] =1
+		if fields[1] in groups[3]:
+			for tag in fields[0]:
+					for data in tag:
+						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
+							if tag[data] in dict4: 
+								dict4[tag[data]]+=1
+							else: 
+								dict4[tag[data]] =1
+		if fields[1] in groups[4]:
+			for tag in fields[0]:
+					for data in tag:
+						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
+							if tag[data] in dict5: 
+								dict5[tag[data]]+=1
+							else: 
+								dict5[tag[data]] =1
+
+            
+		    		
+
+
+
+	sorted_dict1 = sorted(dict1.items(), key=operator.itemgetter(1))
+	sorted_dict2 = sorted(dict2.items(), key=operator.itemgetter(1))
+	sorted_dict3 = sorted(dict3.items(), key=operator.itemgetter(1))
+	sorted_dict4 = sorted(dict4.items(), key=operator.itemgetter(1))
+	sorted_dict5 = sorted(dict5.items(), key=operator.itemgetter(1))
+
+	total1=0
+	total2=0
+	total3=0
+	total4=0
+	total5=0
+
+	for i in range (0, len(sorted_dict1)-1):
+		total1+=sorted_dict1[i][1]
+	for i in range (0, len(sorted_dict2)-1):
+		total2+=sorted_dict2[i][1]
+	for i in range (0, len(sorted_dict3)-1):
+		total3+=sorted_dict3[i][1]
+	for i in range (0, len(sorted_dict4)-1):
+		total4+=sorted_dict4[i][1]
+	for i in range (0, len(sorted_dict5)-1):
+		total5+=sorted_dict5[i][1]
+
+
+
+	trace1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict1[len(sorted_dict1)-1][1]/total1, sorted_dict2[len(sorted_dict2)-1][1]/total2, sorted_dict3[len(sorted_dict3)-1][1]/total3, sorted_dict4[len(sorted_dict4)-1][1]/total4, sorted_dict5[len(sorted_dict5)-1][1]/total5], name='#1', text=[sorted_dict1[len(sorted_dict1)-1][0], sorted_dict2[len(sorted_dict2)-1][0], sorted_dict3[len(sorted_dict3)-1][0], sorted_dict4[len(sorted_dict4)-1][0], sorted_dict5[len(sorted_dict5)-1][0]])
+
+	trace2 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict1[len(sorted_dict1)-2][1]/total1, sorted_dict2[len(sorted_dict2)-2][1]/total2, sorted_dict3[len(sorted_dict3)-2][1]/total3, sorted_dict4[len(sorted_dict4)-2][1]/total4, sorted_dict5[len(sorted_dict5)-2][1]/total5], name='#2',text=[sorted_dict1[len(sorted_dict1)-2][0], sorted_dict2[len(sorted_dict2)-2][0], sorted_dict3[len(sorted_dict3)-2][0], sorted_dict4[len(sorted_dict4)-2][0], sorted_dict5[len(sorted_dict5)-2][0]])
+
+	trace3 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict1[len(sorted_dict1)-3][1]/total1, sorted_dict2[len(sorted_dict2)-3][1]/total2, sorted_dict3[len(sorted_dict3)-3][1]/total3, sorted_dict4[len(sorted_dict4)-3][1]/total4, sorted_dict5[len(sorted_dict5)-3][1]/total5], name='#3', text=[sorted_dict1[len(sorted_dict1)-3][0], sorted_dict2[len(sorted_dict2)-3][0], sorted_dict3[len(sorted_dict3)-3][0], sorted_dict4[len(sorted_dict4)-3][0], sorted_dict5[len(sorted_dict5)-3][0]])
+
+	data = [trace1, trace2, trace3]
+	layout = go.Layout(barmode='group')
+	fig = go.Figure(data=data, layout=layout)
+	py.plot(fig, filename='grouped-bar')
+
+
+
+
+
+
+
+	# dict12 = {}
+	# dict22 = {}
+	# dict32 = {}
+	# dict42 = {}
+	# dict52 = {}
+
+
+	# for fields in amenity_type_per_user_after:
+	# 	if fields[1] in groups[0]:
+	# 		for tag in fields[0]:
+	# 				for data in tag:
+	# 					if tag[data] in refDict and tag[data] not in forbiddenEntries: 
+	# 						if tag[data] in dict12: 
+	# 							dict12[tag[data]]+=1
+	# 						else: 
+	# 							dict12[tag[data]] =1
+	# 	if fields[1] in groups[1]:
+	# 		for tag in fields[0]:
+	# 				for data in tag:
+	# 					if tag[data] in refDict and tag[data] not in forbiddenEntries: 
+	# 						if tag[data] in dict22: 
+	# 							dict22[tag[data]]+=1
+	# 						else: 
+	# 							dict22[tag[data]] =1
+	# 	if fields[1] in groups[2]:
+	# 		for tag in fields[0]:
+	# 				for data in tag:
+	# 					if tag[data] in refDict and tag[data] not in forbiddenEntries: 
+	# 						if tag[data] in dict32: 
+	# 							dict32[tag[data]]+=1
+	# 						else: 
+	# 							dict32[tag[data]] =1
+	# 	if fields[1] in groups[3]:
+	# 		for tag in fields[0]:
+	# 				for data in tag:
+	# 					if tag[data] in refDict and tag[data] not in forbiddenEntries: 
+	# 						if tag[data] in dict42: 
+	# 							dict42[tag[data]]+=1
+	# 						else: 
+	# 							dict42[tag[data]] =1
+	# 	if fields[1] in groups[4]:
+	# 		for tag in fields[0]:
+	# 				for data in tag:
+	# 					if tag[data] in refDict and tag[data] not in forbiddenEntries: 
+	# 						if tag[data] in dict52: 
+	# 							dict52[tag[data]]+=1
+	# 						else: 
+	# 							dict52[tag[data]] =1
+
+            
+		    		
+
+
+
+	# sorted_dict12 = sorted(dict12.items(), key=operator.itemgetter(1))
+	# sorted_dict22 = sorted(dict22.items(), key=operator.itemgetter(1))
+	# sorted_dict32 = sorted(dict32.items(), key=operator.itemgetter(1))
+	# sorted_dict42 = sorted(dict42.items(), key=operator.itemgetter(1))
+	# sorted_dict52 = sorted(dict52.items(), key=operator.itemgetter(1))
+
+	# total12=0
+	# total22=0
+	# total32=0
+	# total42=0
+	# total52=0
+
+	# for i in range (0, len(sorted_dict12)-1):
+	# 	total12+=sorted_dict12[i][1]
+	# for i in range (0, len(sorted_dict22)-1):
+	# 	total22+=sorted_dict22[i][1]
+	# for i in range (0, len(sorted_dict32)-1):
+	# 	total32+=sorted_dict32[i][1]
+	# for i in range (0, len(sorted_dict42)-1):
+	# 	total42+=sorted_dict42[i][1]
+	# for i in range (0, len(sorted_dict52)-1):
+	# 	total52+=sorted_dict52[i][1]
+
+
+
+	# trace12 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict12[len(sorted_dict12)-1][1]/total12, sorted_dict22[len(sorted_dict22)-1][1]/total22, sorted_dict32[len(sorted_dict32)-1][1]/total32, sorted_dict42[len(sorted_dict42)-1][1]/total42, sorted_dict52[len(sorted_dict52)-1][1]/total52], name='#1', text=[sorted_dict12[len(sorted_dict12)-1][0], sorted_dict22[len(sorted_dict22)-1][0], sorted_dict32[len(sorted_dict32)-1][0], sorted_dict42[len(sorted_dict42)-1][0], sorted_dict52[len(sorted_dict52)-1][0]])
+
+	# trace22 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict12[len(sorted_dict12)-2][1]/total12, sorted_dict22[len(sorted_dict22)-2][1]/total22, sorted_dict32[len(sorted_dict32)-2][1]/total32, sorted_dict42[len(sorted_dict42)-2][1]/total42, sorted_dict52[len(sorted_dict52)-2][1]/total52], name='#2',text=[sorted_dict12[len(sorted_dict12)-2][0], sorted_dict22[len(sorted_dict22)-2][0], sorted_dict32[len(sorted_dict32)-2][0], sorted_dict42[len(sorted_dict42)-2][0], sorted_dict52[len(sorted_dict52)-2][0]])
+
+	# trace32 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict12[len(sorted_dict12)-3][1]/total12, sorted_dict22[len(sorted_dict22)-3][1]/total22, sorted_dict32[len(sorted_dict32)-3][1]/total32, sorted_dict42[len(sorted_dict42)-3][1]/total42, sorted_dict52[len(sorted_dict52)-3][1]/total52], name='#3', text=[sorted_dict12[len(sorted_dict12)-3][0], sorted_dict22[len(sorted_dict22)-3][0], sorted_dict32[len(sorted_dict32)-3][0], sorted_dict42[len(sorted_dict42)-3][0], sorted_dict52[len(sorted_dict52)-3][0]])
+
+	# data2 = [trace12, trace22, trace32]
+	# layout2 = go.Layout(barmode='group')
+	# fig2 = go.Figure(data=data2, layout=layout2)
+	# py.plot(fig2, filename='grouped-bar')
+
+
+
+	
+    
+    
     
 
     
