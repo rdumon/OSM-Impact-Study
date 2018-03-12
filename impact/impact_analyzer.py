@@ -706,7 +706,6 @@ def top_amenity_evolution_per_group(db,groups, date_before,event_date,date_after
 
 
 
-
 #-----------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------------
 #HELPER FUNCTIONS
@@ -782,7 +781,6 @@ def trim_95Perc_rule(data):
 			false_positive.append(num)
 
 	print("Disregarded Data Points: ")
-	print(false_positive)
 			
 	return data
 
