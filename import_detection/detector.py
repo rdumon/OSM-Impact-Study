@@ -49,7 +49,7 @@ def detectImport(db,cityName='',x=None,y=None):
                 daily_user = day_contrib[1]
         else:
             daily_best_contrib['value'].append(daily_max)
-            daily_best_contrib['date'].append(datetime.strptime(daily_date, "%Y%m%d"))
+            daily_best_contrib['date'].append(datetime.datetime.strptime(daily_date, "%Y%m%d"))
             daily_best_contrib['user'].append(daily_user)
             daily_max = day_contrib[2]
             daily_user = day_contrib[1]
@@ -82,7 +82,7 @@ def detectImport(db,cityName='',x=None,y=None):
                 current_max = item[2]
                 current_max_user = item[1]
         else:
-            daily_best_new_user_contrib['date'].append(datetime.strptime(current_date, "%Y%m%d"))
+            daily_best_new_user_contrib['date'].append(datetime.datetime.strptime(current_date, "%Y%m%d"))
             daily_best_new_user_contrib['value'].append(current_max)
             daily_best_new_user_contrib['user'].append(current_max_user)
 
@@ -182,7 +182,7 @@ def detectWaysImport(db,cityName='',x=None,y=None):
                 daily_user = day_contrib[1]
         else:
             daily_best_contrib['value'].append(daily_max)
-            daily_best_contrib['date'].append(datetime.strptime(daily_date, "%Y%m%d"))
+            daily_best_contrib['date'].append(datetime.datetime.strptime(daily_date, "%Y%m%d"))
             daily_best_contrib['user'].append(daily_user)
             daily_max = day_contrib[2]
             daily_user = day_contrib[1]
@@ -214,7 +214,7 @@ def detectWaysImport(db,cityName='',x=None,y=None):
                 current_max = item[2]
                 current_max_user = item[1]
         else:
-            daily_best_new_user_contrib['date'].append(datetime.strptime(current_date, "%Y%m%d"))
+            daily_best_new_user_contrib['date'].append(datetime.datetime.strptime(current_date, "%Y%m%d"))
             daily_best_new_user_contrib['value'].append(current_max)
             daily_best_new_user_contrib['user'].append(current_max_user)
 
@@ -302,14 +302,21 @@ def find_contribution_type_of_import(db, iMport = [], table =""):
 
 def imports_report(db, imports= []):
 
+    imports_information = []
+    array = []
     for iMport in imports:
+        array.append(iMport)
         print("#################################################################################################")
         print("The import happened in "+ iMport[0].strftime('%Y-%m-%d') + " and was done by user : "+ iMport[1])
         print("Analysing its nodes: ".upper())
-        find_contribution_type_of_import(db, iMport, "nodes")
+        array.append(find_contribution_type_of_import(db, iMport, "nodes"))
         print("Analysing its ways: ".upper())
-        find_contribution_type_of_import(db, iMport, "ways")
-        
+        array.append(find_contribution_type_of_import(db, iMport, "ways"))
+        imports_information.append(array)
+        array = []
+    return imports_information
+    
+
 
 
 
