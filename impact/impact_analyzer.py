@@ -2,6 +2,7 @@ import sys
 import json
 import decimal
 from datetime import datetime
+
 import plotly
 import plotly.plotly as py
 import plotly.graph_objs as go
@@ -10,6 +11,7 @@ import numpy as np
 plotly.tools.set_credentials_file(username='aoussbai', api_key='uWPqQZwnbe5MgCrfqk3V')
 
 sys.path.insert(0, '../lib/')
+from amenities import *
 # from db import DB
 
 #LIST OF FUNCTIONS IN THIS FILE:
@@ -32,21 +34,21 @@ sys.path.insert(0, '../lib/')
 
 
 
-#----------------------------------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------------------------------
-#SET OF VARIABLES AND FUNCTIONS USEFUL TO LOOK AT AMENITIES
-#----------------------------------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------------------------------
+# #----------------------------------------------------------------------------------------------------------------
+# #----------------------------------------------------------------------------------------------------------------
+# #SET OF VARIABLES AND FUNCTIONS USEFUL TO LOOK AT AMENITIES
+# #----------------------------------------------------------------------------------------------------------------
+# #----------------------------------------------------------------------------------------------------------------
 
 
-def build_dictionary_of_amenities(data):
+# def build_dictionary_of_amenities(data):
 
-	dictionary_amenities = {} 
+# 	dictionary_amenities = {} 
 
-	for object in data["data"]:
-		dictionary_amenities[object["value"]] = 0
+# 	for object in data["data"]:
+# 		dictionary_amenities[object["value"]] = 0
 
-	return dictionary_amenities
+# 	return dictionary_amenities
 
 
 
@@ -330,318 +332,7 @@ def impact_import_creationtomaintenance_ratio_abnormal_return(db, groups, date_b
 
 
 
-#-------------------------------------------------------------------------------------
-#Looking at evolution of the most edited amenity types per user for a certain period
-#-------------------------------------------------------------------------------------
-def contribution_amenity_type_analysis(db,groups, date_before,event_date,date_after, x=None, y=None):
 
-	#Dates computations
-	event_date_convert = datetime.strptime(event_date,'%Y%m%d')
-	date_before_convert = datetime.strptime(date_before,'%Y%m%d')
-	date_after_convert = datetime.strptime(date_after,'%Y%m%d')
-#user_name, count(*) as contributions
-	where_clause = ' '
-	if x!=None and y!=None and len(x) == 2 and len(y) == 2:
-		where_clause += 'AND latitude > '+str(x[1])+' AND longitude > '+str(x[0])+' AND latitude < '+str(y[1])+' AND longitude < '+str(y[0])
-
-
-	amenity_type_per_user = db.execute([" SELECT json_agg(tags) as tags, user_name FROM nodes WHERE tags ? 'amenity' AND created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY tags #>> '{amenity}', user_name"])
-    
-    
-	dict1 = {}
-	dict2 = {}
-	dict3 = {}
-	dict4 = {}
-	dict5 = {}
-
-	for fields in amenity_type_per_user:
-	    if fields[1] in groups[0]:
-	    	for x in fields[0]:
-	    		
-		    	if x['amenity'] in dict1:
-		    		dict1[x['amenity']]+=1
-		    	else:
-		    		dict1[x['amenity']]=1
-	    if fields[1] in groups[1]:
-	    	for x in fields[0]:
-	    		
-		    	if x['amenity'] in dict2:
-		    		dict2[x['amenity']]+=1
-		    	else:
-		    		dict2[x['amenity']]=1
-	    if fields[1] in groups[2]:
-	    	for x in fields[0]:
-	    		
-		    	if x['amenity'] in dict3:
-		    		dict3[x['amenity']]+=1
-		    	else:
-		    		dict3[x['amenity']]=1
-	    if fields[1] in groups[3]:
-	    	for x in fields[0]:
-	    		
-		    	if x['amenity'] in dict4:
-		    		dict4[x['amenity']]+=1
-		    	else:
-		    		dict4[x['amenity']]=1
-	    if fields[1] in groups[4]:
-	    	for x in fields[0]:
-	    		
-		    	if x['amenity'] in dict5:
-		    		dict5[x['amenity']]+=1
-		    	else:
-		    		dict5[x['amenity']]=1
-
-
-	sorted_dict1 = sorted(dict1.items(), key=operator.itemgetter(1))
-	sorted_dict2 = sorted(dict2.items(), key=operator.itemgetter(1))
-	sorted_dict3 = sorted(dict3.items(), key=operator.itemgetter(1))
-	sorted_dict4 = sorted(dict4.items(), key=operator.itemgetter(1))
-	sorted_dict5 = sorted(dict5.items(), key=operator.itemgetter(1))
-
-	total1=0
-	total2=0
-	total3=0
-	total4=0
-	total5=0
-
-	for i in range (0, len(sorted_dict1)-1):
-		total1+=sorted_dict1[i][1]
-	for i in range (0, len(sorted_dict2)-1):
-		total2+=sorted_dict2[i][1]
-	for i in range (0, len(sorted_dict3)-1):
-		total3+=sorted_dict3[i][1]
-	for i in range (0, len(sorted_dict4)-1):
-		total4+=sorted_dict4[i][1]
-	for i in range (0, len(sorted_dict5)-1):
-		total5+=sorted_dict5[i][1]
-
-
-
-	trace1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict1[len(sorted_dict1)-1][1]/total1, sorted_dict2[len(sorted_dict2)-1][1]/total2, sorted_dict3[len(sorted_dict3)-1][1]/total3, sorted_dict4[len(sorted_dict4)-1][1]/total4, sorted_dict5[len(sorted_dict5)-1][1]/total5], name='#1', text=[sorted_dict1[len(sorted_dict1)-1][0], sorted_dict2[len(sorted_dict2)-1][0], sorted_dict3[len(sorted_dict3)-1][0], sorted_dict4[len(sorted_dict4)-1][0], sorted_dict5[len(sorted_dict5)-1][0]])
-
-	trace2 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict1[len(sorted_dict1)-2][1]/total1, sorted_dict2[len(sorted_dict2)-2][1]/total2, sorted_dict3[len(sorted_dict3)-2][1]/total3, sorted_dict4[len(sorted_dict4)-2][1]/total4, sorted_dict5[len(sorted_dict5)-2][1]/total5], name='#2',text=[sorted_dict1[len(sorted_dict1)-2][0], sorted_dict2[len(sorted_dict2)-2][0], sorted_dict3[len(sorted_dict3)-2][0], sorted_dict4[len(sorted_dict4)-2][0], sorted_dict5[len(sorted_dict5)-2][0]])
-
-	trace3 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict1[len(sorted_dict1)-3][1]/total1, sorted_dict2[len(sorted_dict2)-3][1]/total2, sorted_dict3[len(sorted_dict3)-3][1]/total3, sorted_dict4[len(sorted_dict4)-3][1]/total4, sorted_dict5[len(sorted_dict5)-3][1]/total5], name='#3', text=[sorted_dict1[len(sorted_dict1)-3][0], sorted_dict2[len(sorted_dict2)-3][0], sorted_dict3[len(sorted_dict3)-3][0], sorted_dict4[len(sorted_dict4)-3][0], sorted_dict5[len(sorted_dict5)-3][0]])
-
-	data = [trace1, trace2, trace3]
-	layout = go.Layout(barmode='group')
-	fig = go.Figure(data=data, layout=layout)
-	py.plot(fig, filename='grouped-bar')
-	#print(sorted_dict1, sorted_dict2, sorted_dict3, sorted_dict4, sorted_dict5)
-    
-    
-    
-#-------------------------------------------------------------------------------------
-#Looking at evolution of the most edited amenity types per user for a certain period
-#-------------------------------------------------------------------------------------
-# def contribution_amenity_type_analysisv2(db,groups, date_before,event_date,date_after, x=None, y=None):
-
-# 	#Dates computations
-# 	event_date_convert = datetime.strptime(event_date,'%Y%m%d')
-# 	date_before_convert = datetime.strptime(date_before,'%Y%m%d')
-# 	date_after_convert = datetime.strptime(date_after,'%Y%m%d')
-
-# 	where_clause = ' '
-# 	if x!=None and y!=None and len(x) == 2 and len(y) == 2:
-# 		where_clause += 'AND latitude > '+str(x[1])+' AND longitude > '+str(x[0])+' AND latitude < '+str(y[1])+' AND longitude < '+str(y[0])
-
-
-# 	amenity_type_per_user_before = db.execute([" SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at >= '" + date_before_convert.strftime('%Y-%m-%d') +"' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name"])
-# 	amenity_type_per_user_after = db.execute([" SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at < '" + date_after_convert.strftime('%Y-%m-%d') +"' AND created_at > '" + event_date_convert.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name"])
-	
-	
-# 	with open('/Users/aousssbai/Desktop/OSM-Impact-Study/lib/amenities.json') as data_file:
-# 		data = json.load(data_file)  
-# 	refDict = build_dictionary_of_amenities(data)  
-# 	forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w"}
-
-
-
-# 	dict1 = {}
-# 	dict2 = {}
-# 	dict3 = {}
-# 	dict4 = {}
-# 	dict5 = {}
-
-
-# 	for fields in amenity_type_per_user_before:
-# 		if fields[1] in groups[0]:
-# 			for tag in fields[0]:
-# 					for data in tag:
-# 						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-# 							if tag[data] in dict1: 
-# 								dict1[tag[data]]+=1
-# 							else: 
-# 								dict1[tag[data]] =1
-# 		if fields[1] in groups[1]:
-# 			for tag in fields[0]:
-# 					for data in tag:
-# 						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-# 							if tag[data] in dict2: 
-# 								dict2[tag[data]]+=1
-# 							else: 
-# 								dict2[tag[data]] =1
-# 		if fields[1] in groups[2]:
-# 			for tag in fields[0]:
-# 					for data in tag:
-# 						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-# 							if tag[data] in dict3: 
-# 								dict3[tag[data]]+=1
-# 							else: 
-# 								dict3[tag[data]] =1
-# 		if fields[1] in groups[3]:
-# 			for tag in fields[0]:
-# 					for data in tag:
-# 						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-# 							if tag[data] in dict4: 
-# 								dict4[tag[data]]+=1
-# 							else: 
-# 								dict4[tag[data]] =1
-# 		if fields[1] in groups[4]:
-# 			for tag in fields[0]:
-# 					for data in tag:
-# 						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-# 							if tag[data] in dict5: 
-# 								dict5[tag[data]]+=1
-# 							else: 
-# 								dict5[tag[data]] =1
-
-            
-		    		
-
-
-
-# 	sorted_dict1 = sorted(dict1.items(), key=operator.itemgetter(1))
-# 	sorted_dict2 = sorted(dict2.items(), key=operator.itemgetter(1))
-# 	sorted_dict3 = sorted(dict3.items(), key=operator.itemgetter(1))
-# 	sorted_dict4 = sorted(dict4.items(), key=operator.itemgetter(1))
-# 	sorted_dict5 = sorted(dict5.items(), key=operator.itemgetter(1))
-
-# 	total1=0
-# 	total2=0
-# 	total3=0
-# 	total4=0
-# 	total5=0
-
-# 	for i in range (0, len(sorted_dict1)-1):
-# 		total1+=sorted_dict1[i][1]
-# 	for i in range (0, len(sorted_dict2)-1):
-# 		total2+=sorted_dict2[i][1]
-# 	for i in range (0, len(sorted_dict3)-1):
-# 		total3+=sorted_dict3[i][1]
-# 	for i in range (0, len(sorted_dict4)-1):
-# 		total4+=sorted_dict4[i][1]
-# 	for i in range (0, len(sorted_dict5)-1):
-# 		total5+=sorted_dict5[i][1]
-
-
-
-# 	trace1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict1[len(sorted_dict1)-1][1]/total1, sorted_dict2[len(sorted_dict2)-1][1]/total2, sorted_dict3[len(sorted_dict3)-1][1]/total3, sorted_dict4[len(sorted_dict4)-1][1]/total4, sorted_dict5[len(sorted_dict5)-1][1]/total5], name='#1', text=[sorted_dict1[len(sorted_dict1)-1][0], sorted_dict2[len(sorted_dict2)-1][0], sorted_dict3[len(sorted_dict3)-1][0], sorted_dict4[len(sorted_dict4)-1][0], sorted_dict5[len(sorted_dict5)-1][0]])
-
-# 	trace2 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict1[len(sorted_dict1)-2][1]/total1, sorted_dict2[len(sorted_dict2)-2][1]/total2, sorted_dict3[len(sorted_dict3)-2][1]/total3, sorted_dict4[len(sorted_dict4)-2][1]/total4, sorted_dict5[len(sorted_dict5)-2][1]/total5], name='#2',text=[sorted_dict1[len(sorted_dict1)-2][0], sorted_dict2[len(sorted_dict2)-2][0], sorted_dict3[len(sorted_dict3)-2][0], sorted_dict4[len(sorted_dict4)-2][0], sorted_dict5[len(sorted_dict5)-2][0]])
-
-# 	trace3 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict1[len(sorted_dict1)-3][1]/total1, sorted_dict2[len(sorted_dict2)-3][1]/total2, sorted_dict3[len(sorted_dict3)-3][1]/total3, sorted_dict4[len(sorted_dict4)-3][1]/total4, sorted_dict5[len(sorted_dict5)-3][1]/total5], name='#3', text=[sorted_dict1[len(sorted_dict1)-3][0], sorted_dict2[len(sorted_dict2)-3][0], sorted_dict3[len(sorted_dict3)-3][0], sorted_dict4[len(sorted_dict4)-3][0], sorted_dict5[len(sorted_dict5)-3][0]])
-
-# 	data = [trace1, trace2, trace3]
-# 	layout = go.Layout(barmode='group')
-# 	fig = go.Figure(data=data, layout=layout)
-# 	py.plot(fig, filename='grouped-bar-before')
-
-
-
-
-
-
-
-# 	dict12 = {}
-# 	dict22 = {}
-# 	dict32 = {}
-# 	dict42 = {}
-# 	dict52 = {}
-
-
-# 	for fields in amenity_type_per_user_after:
-# 		if fields[1] in groups[0]:
-# 			for tag in fields[0]:
-# 					for data in tag:
-# 						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-# 							if tag[data] in dict12: 
-# 								dict12[tag[data]]+=1
-# 							else: 
-# 								dict12[tag[data]] =1
-# 		if fields[1] in groups[1]:
-# 			for tag in fields[0]:
-# 					for data in tag:
-# 						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-# 							if tag[data] in dict22: 
-# 								dict22[tag[data]]+=1
-# 							else: 
-# 								dict22[tag[data]] =1
-# 		if fields[1] in groups[2]:
-# 			for tag in fields[0]:
-# 					for data in tag:
-# 						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-# 							if tag[data] in dict32: 
-# 								dict32[tag[data]]+=1
-# 							else: 
-# 								dict32[tag[data]] =1
-# 		if fields[1] in groups[3]:
-# 			for tag in fields[0]:
-# 					for data in tag:
-# 						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-# 							if tag[data] in dict42: 
-# 								dict42[tag[data]]+=1
-# 							else: 
-# 								dict42[tag[data]] =1
-# 		if fields[1] in groups[4]:
-# 			for tag in fields[0]:
-# 					for data in tag:
-# 						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-# 							if tag[data] in dict52: 
-# 								dict52[tag[data]]+=1
-# 							else: 
-# 								dict52[tag[data]] =1
-
-            
-		    		
-
-
-
-# 	sorted_dict12 = sorted(dict12.items(), key=operator.itemgetter(1))
-# 	sorted_dict22 = sorted(dict22.items(), key=operator.itemgetter(1))
-# 	sorted_dict32 = sorted(dict32.items(), key=operator.itemgetter(1))
-# 	sorted_dict42 = sorted(dict42.items(), key=operator.itemgetter(1))
-# 	sorted_dict52 = sorted(dict52.items(), key=operator.itemgetter(1))
-
-# 	total12=0
-# 	total22=0
-# 	total32=0
-# 	total42=0
-# 	total52=0
-
-# 	for i in range (0, len(sorted_dict12)-1):
-# 		total12+=sorted_dict12[i][1]
-# 	for i in range (0, len(sorted_dict22)-1):
-# 		total22+=sorted_dict22[i][1]
-# 	for i in range (0, len(sorted_dict32)-1):
-# 		total32+=sorted_dict32[i][1]
-# 	for i in range (0, len(sorted_dict42)-1):
-# 		total42+=sorted_dict42[i][1]
-# 	for i in range (0, len(sorted_dict52)-1):
-# 		total52+=sorted_dict52[i][1]
-
-
-
-# 	trace12 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict12[len(sorted_dict12)-1][1]/total12, sorted_dict22[len(sorted_dict22)-1][1]/total22, sorted_dict32[len(sorted_dict32)-1][1]/total32, sorted_dict42[len(sorted_dict42)-1][1]/total42, sorted_dict52[len(sorted_dict52)-1][1]/total52], name='#1', text=[sorted_dict12[len(sorted_dict12)-1][0], sorted_dict22[len(sorted_dict22)-1][0], sorted_dict32[len(sorted_dict32)-1][0], sorted_dict42[len(sorted_dict42)-1][0], sorted_dict52[len(sorted_dict52)-1][0]])
-
-# 	trace22 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict12[len(sorted_dict12)-2][1]/total12, sorted_dict22[len(sorted_dict22)-2][1]/total22, sorted_dict32[len(sorted_dict32)-2][1]/total32, sorted_dict42[len(sorted_dict42)-2][1]/total42, sorted_dict52[len(sorted_dict52)-2][1]/total52], name='#2',text=[sorted_dict12[len(sorted_dict12)-2][0], sorted_dict22[len(sorted_dict22)-2][0], sorted_dict32[len(sorted_dict32)-2][0], sorted_dict42[len(sorted_dict42)-2][0], sorted_dict52[len(sorted_dict52)-2][0]])
-
-# 	trace32 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict12[len(sorted_dict12)-3][1]/total12, sorted_dict22[len(sorted_dict22)-3][1]/total22, sorted_dict32[len(sorted_dict32)-3][1]/total32, sorted_dict42[len(sorted_dict42)-3][1]/total42, sorted_dict52[len(sorted_dict52)-3][1]/total52], name='#3', text=[sorted_dict12[len(sorted_dict12)-3][0], sorted_dict22[len(sorted_dict22)-3][0], sorted_dict32[len(sorted_dict32)-3][0], sorted_dict42[len(sorted_dict42)-3][0], sorted_dict52[len(sorted_dict52)-3][0]])
-
-# 	data2 = [trace12, trace22, trace32]
-# 	layout2 = go.Layout(barmode='group')
-# 	fig2 = go.Figure(data=data2, layout=layout2)
-# 	py.plot(fig2, filename='grouped-bar-after')
 
 
 #=========================================================================================#
@@ -662,18 +353,19 @@ def top_amenity_evolution_per_group(db,groups, date_before,event_date,date_after
 	amenity_type_per_user_before = db.execute([" SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at >= '" + date_before_convert.strftime('%Y-%m-%d') +"' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name"])
 	amenity_type_per_user_after = db.execute([" SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at < '" + date_after_convert.strftime('%Y-%m-%d') +"' AND created_at > '" + event_date_convert.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name"])
 	
-	
-	with open('/Users/aousssbai/Desktop/OSM-Impact-Study/lib/amenities.json') as data_file:
-		data = json.load(data_file)  
-	refDict = build_dictionary_of_amenities(data)  
+	refDict = build_dictionary_of_amenities()  
 	forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w", "name"}
 	absol_dict = get_amenities_top()
-	print(absol_dict)
+	
 
 	top1 = list(absol_dict)[2]
 	top2 = list(absol_dict)[1]
 	top3 = list(absol_dict)[0]
 	dict_top = {top1, top2, top3}
+
+
+#=====================Before the import====================================
+
 
 	dict_top1={}
 	dict_top2={}
@@ -681,16 +373,26 @@ def top_amenity_evolution_per_group(db,groups, date_before,event_date,date_after
 	dict_top4={}
 	dict_top5={}
 	
-
-
 	dict1 = {}
 	dict2 = {}
 	dict3 = {}
 	dict4 = {}
 	dict5 = {}
 
+	dict_top12={}
+	dict_top22={}
+	dict_top32={}
+	dict_top42={}
+	dict_top52={}
+	
+	dict12 = {}
+	dict22 = {}
+	dict32 = {}
+	dict42 = {}
+	dict52 = {}
 
-	for fields in amenity_type_per_user_after:
+
+	for fields in amenity_type_per_user_before:
 		if fields[1] in groups[0]:
 			for tag in fields[0]:
 					for data in tag:
@@ -757,6 +459,74 @@ def top_amenity_evolution_per_group(db,groups, date_before,event_date,date_after
 							else: 
 								dict5[tag[data]] =1
 
+		for fields in amenity_type_per_user_after:
+			if fields[1] in groups[0]:
+				for tag in fields[0]:
+						for data in tag:
+							if tag[data] in dict_top and tag[data] not in forbiddenEntries:
+								if tag[data] in dict_top12:
+									dict_top12[tag[data]]+=1
+								else:
+									dict_top12[tag[data]] =1
+							if tag[data] in refDict and tag[data] not in forbiddenEntries: 
+								if tag[data] in dict12: 
+									dict12[tag[data]]+=1
+								else: 
+									dict12[tag[data]] =1
+			if fields[1] in groups[1]:
+				for tag in fields[0]:
+						for data in tag:
+							if tag[data] in dict_top and tag[data] not in forbiddenEntries:
+								if tag[data] in dict_top22:
+									dict_top22[tag[data]]+=1
+								else:
+									dict_top22[tag[data]] =1
+							if tag[data] in refDict and tag[data] not in forbiddenEntries: 
+								if tag[data] in dict22: 
+									dict22[tag[data]]+=1
+								else: 
+									dict22[tag[data]] =1
+			if fields[1] in groups[2]:
+				for tag in fields[0]:
+						for data in tag:
+							if tag[data] in dict_top and tag[data] not in forbiddenEntries:
+								if tag[data] in dict_top32:
+									dict_top32[tag[data]]+=1
+								else:
+									dict_top32[tag[data]] =1
+							if tag[data] in refDict and tag[data] not in forbiddenEntries: 
+								if tag[data] in dict32: 
+									dict32[tag[data]]+=1
+								else: 
+									dict32[tag[data]] =1
+			if fields[1] in groups[3]:
+				for tag in fields[0]:
+						for data in tag:
+							if tag[data] in dict_top and tag[data] not in forbiddenEntries:
+								if tag[data] in dict_top42:
+									dict_top42[tag[data]]+=1
+								else:
+									dict_top42[tag[data]] =1
+							if tag[data] in refDict and tag[data] not in forbiddenEntries: 
+								if tag[data] in dict42: 
+									dict42[tag[data]]+=1
+								else: 
+									dict42[tag[data]] =1
+			if fields[1] in groups[4]:
+				for tag in fields[0]:
+						for data in tag:
+							if tag[data] in dict_top and tag[data] not in forbiddenEntries:
+								if tag[data] in dict_top52:
+									dict_top52[tag[data]]+=1
+								else:
+									dict_top52[tag[data]] =1
+							if tag[data] in refDict and tag[data] not in forbiddenEntries: 
+								if tag[data] in dict52: 
+									dict52[tag[data]]+=1
+								else: 
+									dict52[tag[data]] =1
+
+
 
 
 
@@ -766,11 +536,25 @@ def top_amenity_evolution_per_group(db,groups, date_before,event_date,date_after
 	sorted_dict4 = sorted(dict4.items(), key=operator.itemgetter(1))
 	sorted_dict5 = sorted(dict5.items(), key=operator.itemgetter(1))
 
+
+	sorted_dict12 = sorted(dict12.items(), key=operator.itemgetter(1))
+	sorted_dict22 = sorted(dict22.items(), key=operator.itemgetter(1))
+	sorted_dict32 = sorted(dict32.items(), key=operator.itemgetter(1))
+	sorted_dict42 = sorted(dict42.items(), key=operator.itemgetter(1))
+	sorted_dict52 = sorted(dict52.items(), key=operator.itemgetter(1))
+
 	total1=0
 	total2=0
 	total3=0
 	total4=0
 	total5=0
+
+
+	total12=0
+	total22=0
+	total32=0
+	total42=0
+	total52=0
 
 	for i in range (0, len(sorted_dict1)-1):
 		total1+=sorted_dict1[i][1]
@@ -782,37 +566,98 @@ def top_amenity_evolution_per_group(db,groups, date_before,event_date,date_after
 		total4+=sorted_dict4[i][1]
 	for i in range (0, len(sorted_dict5)-1):
 		total5+=sorted_dict5[i][1]
+
+
+	for i in range (0, len(sorted_dict12)-1):
+		total12+=sorted_dict12[i][1]
+	for i in range (0, len(sorted_dict22)-1):
+		total22+=sorted_dict22[i][1]
+	for i in range (0, len(sorted_dict32)-1):
+		total32+=sorted_dict32[i][1]
+	for i in range (0, len(sorted_dict42)-1):
+		total42+=sorted_dict42[i][1]
+	for i in range (0, len(sorted_dict52)-1):
+		total52+=sorted_dict52[i][1]
+
+
+	for i in dict_top:
+		if i not in dict_top1:
+			dict_top1[i]=0
+		if i not in dict_top2:
+			dict_top2[i]=0
+		if i not in dict_top3:
+			dict_top3[i]=0
+		if i not in dict_top4:
+			dict_top4[i]=0
+		if i not in dict_top5:
+			dict_top5[i]=0
+		if i not in dict_top12:
+			dict_top12[i]=0
+		if i not in dict_top22:
+			dict_top22[i]=0
+		if i not in dict_top32:
+			dict_top32[i]=0
+		if i not in dict_top42:
+			dict_top42[i]=0
+		if i not in dict_top52:
+			dict_top52[i]=0
 	
 
 
 
-
-	# trace1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[dict_top1[2][1]/total1, dict_top2[2][1]/total2, dict_top3[2][1]/total3, dict_top4[2][1]/total4, dict_top5[2][1]/total5], name='#1', text=[dict_top1[2][0], dict_top2[2][0], dict_top2[2][0], dict_top2[2][0], dict_top2[2][0]])
-
-	# trace2 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[dict_top1[1][1]/total1, dict_top2[1][1]/total2, dict_top3[1][1]/total3, dict_top4[1][1]/total4, dict_top5[1][1]/total5], name='#2', text=[dict_top1[1][0], dict_top2[1][0], dict_top3[1][0], dict_top4[1][0], dict_top5[1][0]])
-	# trace3 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[dict_top1[0][1]/total1, dict_top2[0][1]/total2, dict_top3[0][1]/total3, dict_top4[0][1]/total4, dict_top5[0][1]/total5], name='#3', text=[dict_top1[0][0], dict_top2[0][0], dict_top3[0][0], dict_top4[0][0], dict_top5[0][0]])
-
-
-	# data = [trace1, trace2]
-	# layout = go.Layout(barmode='group')
-	# fig = go.Figure(data=data, layout=layout)
-	# py.plot(fig, filename='grouped-bar-top-evolution')
+  ##plot the top edited amenities for each group before the import
 
 
 
-	trace12 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict1[len(sorted_dict1)-1][1]/total1, sorted_dict2[len(sorted_dict2)-1][1]/total2, sorted_dict3[len(sorted_dict3)-1][1]/total3, sorted_dict4[len(sorted_dict4)-1][1]/total4, sorted_dict5[len(sorted_dict5)-1][1]/total5], name='#1', text=[sorted_dict1[len(sorted_dict1)-1][0], sorted_dict2[len(sorted_dict2)-1][0], sorted_dict3[len(sorted_dict3)-1][0], sorted_dict4[len(sorted_dict4)-1][0], sorted_dict5[len(sorted_dict5)-1][0]])
+	trace_top1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[dict_top1[top1]/total1, dict_top2[top1]/total2, dict_top3[top1]/total3, dict_top4[top1]/total4, dict_top5[top1]/total5], name='#1:' + top1, text=[dict_top1[top1], dict_top2[top1], dict_top3[top1], dict_top4[top1], dict_top5[top1]])
+	trace_top2 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[dict_top1[top2]/total1, dict_top2[top2]/total2, dict_top3[top2]/total3, dict_top4[top2]/total4, dict_top5[top2]/total5], name='#2:' + top2, text=[dict_top1[top2], dict_top2[top2], dict_top3[top2], dict_top4[top2], dict_top5[top2]])
+	trace_top3 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[dict_top1[top3]/total1, dict_top2[top3]/total2, dict_top3[top3]/total3, dict_top4[top3]/total4, dict_top5[top3]/total5], name='#3:' + top3, text=[dict_top1[top3], dict_top2[top3], dict_top3[top3], dict_top4[top3], dict_top5[top3]])
 
-	trace22 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict1[len(sorted_dict1)-2][1]/total1, sorted_dict2[len(sorted_dict2)-2][1]/total2, sorted_dict3[len(sorted_dict3)-2][1]/total3, sorted_dict4[len(sorted_dict4)-2][1]/total4, sorted_dict5[len(sorted_dict5)-2][1]/total5], name='#2',text=[sorted_dict1[len(sorted_dict1)-2][0], sorted_dict2[len(sorted_dict2)-2][0], sorted_dict3[len(sorted_dict3)-2][0], sorted_dict4[len(sorted_dict4)-2][0], sorted_dict5[len(sorted_dict5)-2][0]])
 
-	trace32 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict1[len(sorted_dict1)-3][1]/total1, sorted_dict2[len(sorted_dict2)-3][1]/total2, sorted_dict3[len(sorted_dict3)-3][1]/total3, sorted_dict4[len(sorted_dict4)-3][1]/total4, sorted_dict5[len(sorted_dict5)-3][1]/total5], name='#3', text=[sorted_dict1[len(sorted_dict1)-3][0], sorted_dict2[len(sorted_dict2)-3][0], sorted_dict3[len(sorted_dict3)-3][0], sorted_dict4[len(sorted_dict4)-3][0], sorted_dict5[len(sorted_dict5)-3][0]])
+	data = [trace_top1, trace_top2, trace_top3]
+	layout = go.Layout(barmode='group')
+	fig = go.Figure(data=data, layout=layout)
+	py.plot(fig, filename='grouped-bar-top-evolution-before')
 
-	data1 = [trace12, trace22, trace32]
+
+ ###plot the ratio of editing of the top amenities edited by the import
+
+
+
+	trace_before1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict1[len(sorted_dict1)-1][1]/total1, sorted_dict2[len(sorted_dict2)-1][1]/total2, sorted_dict3[len(sorted_dict3)-1][1]/total3, sorted_dict4[len(sorted_dict4)-1][1]/total4, sorted_dict5[len(sorted_dict5)-1][1]/total5], name='#1', text=[sorted_dict1[len(sorted_dict1)-1][0], sorted_dict2[len(sorted_dict2)-1][0], sorted_dict3[len(sorted_dict3)-1][0], sorted_dict4[len(sorted_dict4)-1][0], sorted_dict5[len(sorted_dict5)-1][0]])
+	trace_before2 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict1[len(sorted_dict1)-2][1]/total1, sorted_dict2[len(sorted_dict2)-2][1]/total2, sorted_dict3[len(sorted_dict3)-2][1]/total3, sorted_dict4[len(sorted_dict4)-2][1]/total4, sorted_dict5[len(sorted_dict5)-2][1]/total5], name='#2',text=[sorted_dict1[len(sorted_dict1)-2][0], sorted_dict2[len(sorted_dict2)-2][0], sorted_dict3[len(sorted_dict3)-2][0], sorted_dict4[len(sorted_dict4)-2][0], sorted_dict5[len(sorted_dict5)-2][0]])
+	trace_before3 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict1[len(sorted_dict1)-3][1]/total1, sorted_dict2[len(sorted_dict2)-3][1]/total2, sorted_dict3[len(sorted_dict3)-3][1]/total3, sorted_dict4[len(sorted_dict4)-3][1]/total4, sorted_dict5[len(sorted_dict5)-3][1]/total5], name='#3', text=[sorted_dict1[len(sorted_dict1)-3][0], sorted_dict2[len(sorted_dict2)-3][0], sorted_dict3[len(sorted_dict3)-3][0], sorted_dict4[len(sorted_dict4)-3][0], sorted_dict5[len(sorted_dict5)-3][0]])
+
+	data1 = [trace_before1, trace_before2, trace_before3]
 	layout1 = go.Layout(barmode='group')
 	fig1 = go.Figure(data=data1, layout=layout1)
 	py.plot(fig1, filename='grouped-bar-before')
 
 
 
+ ###plot the top edited amenities for each group after the import
+
+	trace_top12 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[dict_top12[top1]/total12, dict_top22[top1]/total22, dict_top32[top1]/total32, dict_top42[top1]/total42, dict_top52[top1]/total52], name='#1:' + top1, text=[dict_top12[top1], dict_top22[top1], dict_top32[top1], dict_top42[top1], dict_top52[top1]])
+	trace_top22 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[dict_top12[top2]/total12, dict_top22[top2]/total22, dict_top32[top2]/total32, dict_top42[top2]/total42, dict_top52[top2]/total52], name='#2:' + top2, text=[dict_top12[top2], dict_top22[top2], dict_top32[top2], dict_top42[top2], dict_top52[top2]])
+	trace_top32 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[dict_top12[top3]/total12, dict_top22[top3]/total22, dict_top32[top3]/total32, dict_top42[top3]/total42, dict_top52[top3]/total52], name='#3:' + top3, text=[dict_top12[top3], dict_top22[top3], dict_top32[top3], dict_top42[top3], dict_top52[top3]])
+
+
+	data2 = [trace_top12, trace_top22, trace_top32]
+	layout2 = go.Layout(barmode='group')
+	fig2 = go.Figure(data=data2, layout=layout2)
+	py.plot(fig2, filename='grouped-bar-top-evolution-after')
+
+
+ ###plot the ratio of editing of the top amenities edited by the import
+
+	trace_after1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict12[len(sorted_dict12)-1][1]/total12, sorted_dict22[len(sorted_dict22)-1][1]/total22, sorted_dict32[len(sorted_dict32)-1][1]/total32, sorted_dict42[len(sorted_dict42)-1][1]/total42, sorted_dict52[len(sorted_dict52)-1][1]/total52], name='#1', text=[sorted_dict12[len(sorted_dict12)-1][0], sorted_dict22[len(sorted_dict22)-1][0], sorted_dict32[len(sorted_dict32)-1][0], sorted_dict42[len(sorted_dict42)-1][0], sorted_dict52[len(sorted_dict52)-1][0]])
+	trace_after2 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict12[len(sorted_dict12)-2][1]/total12, sorted_dict22[len(sorted_dict22)-2][1]/total22, sorted_dict32[len(sorted_dict32)-2][1]/total32, sorted_dict42[len(sorted_dict42)-2][1]/total42, sorted_dict52[len(sorted_dict52)-2][1]/total52], name='#2', text=[sorted_dict12[len(sorted_dict12)-2][0], sorted_dict22[len(sorted_dict22)-2][0], sorted_dict32[len(sorted_dict32)-2][0], sorted_dict42[len(sorted_dict42)-2][0], sorted_dict52[len(sorted_dict52)-2][0]])
+	trace_after3 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict12[len(sorted_dict12)-3][1]/total12, sorted_dict22[len(sorted_dict22)-3][1]/total22, sorted_dict32[len(sorted_dict32)-3][1]/total32, sorted_dict42[len(sorted_dict42)-3][1]/total42, sorted_dict52[len(sorted_dict52)-3][1]/total52], name='#3', text=[sorted_dict12[len(sorted_dict12)-3][0], sorted_dict22[len(sorted_dict22)-3][0], sorted_dict32[len(sorted_dict32)-3][0], sorted_dict42[len(sorted_dict42)-3][0], sorted_dict52[len(sorted_dict52)-3][0]])
+
+	data3 = [trace_after1, trace_after2, trace_after3]
+	layout3 = go.Layout(barmode='group')
+	fig3 = go.Figure(data=data3, layout=layout3)
+	py.plot(fig3, filename='grouped-bar-after')
 
 
 
