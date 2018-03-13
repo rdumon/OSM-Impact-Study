@@ -12,6 +12,23 @@ plotly.tools.set_credentials_file(username='aoussbai', api_key='uWPqQZwnbe5MgCrf
 sys.path.insert(0, '../lib/')
 # from db import DB
 
+#LIST OF FUNCTIONS IN THIS FILE:
+
+# def abnormal_return_for_group(db, groups, date_before, event_date , date_after, x = None, y = None)
+
+# def contribution_types_gobal_analysis(db, date_before,event_date,date_after, x=None, y=None)
+
+# def impact_import_creationtomaintenance_ratio(db, groups, date_before, event_date, Graph_title)
+
+# def impact_import_creationtomaintenance_ratio_abnormal_return(db, groups, date_before, event_date, date_after)
+
+# def contribution_amenity_type_analysisv2(db,groups, date_before,event_date,date_after, x=None, y=None)
+
+# def top_amenity_evolution_per_group(db,groups, date_before,event_date,date_after, x=None, y=None)
+
+# def group_analyser(db, date_before, event_date , x = None, y = None)
+
+# def trim_95Perc_rule(data)
 
 
 
@@ -245,6 +262,70 @@ def impact_import_creationtomaintenance_ratio(db, groups, date_before, event_dat
 
 	fig = go.Figure(data=data, layout=layout)
 	py.plot(fig, filename='Maintenance vs Creations ' + Graph_title)
+
+#=================================================================================================
+#==================Impact of an import on creation to maintenance ratio===========================
+#==================Using abdnormal return and box plost to show the rela.=========================
+#=================================================================================================
+def impact_import_creationtomaintenance_ratio_abnormal_return(db, groups, date_before, event_date, date_after):
+
+	#Dates computations
+	event_date_convert = datetime.strptime(event_date,'%Y%m%d')
+	date_before_convert = datetime.strptime(date_before,'%Y%m%d')
+	date_after_convert = datetime.strptime(date_after,'%Y%m%d')
+
+	#The number of weeks between event date and the date before the event
+	diff_expected_user = (event_date_convert - date_before_convert).days /7
+	#The number of weeks between event date and the date after the event
+	diff_actual_user = (date_after_convert - event_date_convert).days /7
+
+	#dictionaries recording the creates and total contribs of each user 
+	dict_user_total_contribs = {}
+	dict_user_creates = {}
+
+	contribs_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+" 00:00:00' GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + " 00:00:00' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + " 00:00:00' GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions) "])
+
+	for a in contribs_per_user:
+		dict_user_total_contribs[a[1]] = a[0]
+
+
+	creates_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+" 00:00:00' AND version = 1 GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + " 00:00:00' AND version = 1 GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + " 00:00:00' AND version = 1 GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions) "])
+
+	for a in creates_per_user:
+		dict_user_creates[a[1]] = a[0]
+
+	#calculate expected ratio for each user over period given as input
+	dict_user_expected_ratio = {}
+	for k, v in dict_user_total_contribs.items():
+		dict_user_expected_ratio[k] = dict_user_creates.get(k,decimal.Decimal(0.0)) / dict_user_total_contribs[k] / diff_expected_user
+
+	#actual ratio per user for the period given as input 
+	contribs_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at <= '" + date_after_convert.strftime('%Y-%m-%d') + "' AND created_at > '" + event_date_convert.strftime('%Y-%m-%d')+" 24:00:00' GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at <= '" + date_after_convert.strftime('%Y-%m-%d') + "' AND created_at > '" + event_date_convert.strftime('%Y-%m-%d') + " 24:00:00' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at <= '" + date_after_convert.strftime('%Y-%m-%d') + "' AND created_at > '" + event_date_convert.strftime('%Y-%m-%d') + " 24:00:00' GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions) "])
+
+	for a in contribs_per_user:
+		dict_user_total_contribs[a[1]] = a[0]
+
+
+	creates_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at <= '" + date_after_convert.strftime('%Y-%m-%d') + "' AND created_at > '" + event_date_convert.strftime('%Y-%m-%d')+" 24:00:00' GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at <= '" + date_after_convert.strftime('%Y-%m-%d') + "' AND created_at > '" + event_date_convert.strftime('%Y-%m-%d') + " 24:00:00' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at <= '" + date_after_convert.strftime('%Y-%m-%d') + "' AND created_at > '" + event_date_convert.strftime('%Y-%m-%d') + " 24:00:00' GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions) "])
+
+	for a in creates_per_user:
+		dict_user_creates[a[1]] = a[0]
+
+	#calculate actual ratio for each user over period given as input
+	dict_user_actual_ratio = {}
+	for k, v in dict_user_total_contribs.items():
+		dict_user_actual_ratio[k] = dict_user_creates.get(k,decimal.Decimal(0.0)) / dict_user_total_contribs[k] / diff_actual_user
+
+	abnormal_return_per_group = [[],[],[],[],[]]
+	group_num = 0
+	for group in groups:
+		for user in group:
+			abnormal_return_per_group[group_num].append(dict_user_actual_ratio[user]-dict_user_expected_ratio[user])
+		print(abnormal_return_per_group[group_num])
+		group_num += 1
+
+	    
+
 
 
 

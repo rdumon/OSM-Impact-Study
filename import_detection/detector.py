@@ -289,13 +289,13 @@ def find_contribution_type_of_import(db, iMport = [], table =""):
                     continue
 
     list_top = []
-    list_top.append(dict(sorted(dict_amenities_right_fields.iteritems(), key=operator.itemgetter(1), reverse=True)[:5]))
-    list_top.append(dict(sorted(dict_amenities_left_fields.iteritems(), key=operator.itemgetter(1), reverse=True)[:5]))
+    list_top.append(dict(sorted(list(dict_amenities_right_fields.items()), key=operator.itemgetter(1), reverse=True)[:5]))
+    list_top.append(dict(sorted(list(dict_amenities_left_fields.items()), key=operator.itemgetter(1), reverse=True)[:5]))
 
     print("Top 5 for the left fields of the tags:")
-    print(dict(sorted(dict_amenities_right_fields.iteritems(), key=operator.itemgetter(1), reverse=True)[:3]))
+    print(dict(sorted(list(dict_amenities_right_fields.items()), key=operator.itemgetter(1), reverse=True)[:3]))
     print("Top 5 for the right fields of the tags:")
-    print(dict(sorted(dict_amenities_left_fields.iteritems(), key=operator.itemgetter(1), reverse=True)[:3]))
+    print(dict(sorted(list(dict_amenities_left_fields.items()), key=operator.itemgetter(1), reverse=True)[:3]))
     print("Unidentified fields were ignored : " + str(unidentified))
 
     return list_top
