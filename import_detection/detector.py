@@ -8,6 +8,14 @@ from operator import itemgetter
 import datetime
 from lib.amenities import *
 
+#LIST OF FUNCTIONS IN THIS FILE:
+
+# def detectImport(db,cityName='',x=None,y=None):
+# WAYS/NODES
+
+# def find_contribution_type_of_import(db, iMport = [], table ="")
+# you decide
+
 
 
 # ========== Code ================
@@ -16,12 +24,12 @@ from lib.amenities import *
 # X is the lower left point
 # Y is the upper right point
 
-def detectImport(db,cityName='',x=None,y=None):
+def detectImport(db,cityName=''):
 
     # If there is a location restriction
     where_clause = ''
-    if x!=None and y!=None and len(x) == 2 and len(y) == 2:
-        where_clause = 'where (latitude > '+str(x[1])+' and longitude > '+str(x[0])+') and (latitude < '+str(y[1])+' and longitude < '+str(y[0])+')'
+    # if x!=None and y!=None and len(x) == 2 and len(y) == 2:
+    #     where_clause = 'where (latitude > '+str(x[1])+' and longitude > '+str(x[0])+') and (latitude < '+str(y[1])+' and longitude < '+str(y[0])+')'
 
     # Queries
     creation_date_query = 'select user_name, to_char(min(created_at),\'YYYYMMDD\') as created_at from nodes '+where_clause+' group by user_name'

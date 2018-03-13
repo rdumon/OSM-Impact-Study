@@ -15,21 +15,27 @@ sys.path.insert(0, '../lib/')
 #LIST OF FUNCTIONS IN THIS FILE:
 
 # def abnormal_return_for_group(db, groups, date_before, event_date , date_after, x = None, y = None)
+# counts abnormal  WAYS/NODES/RELATIONS
 
 # def contribution_types_gobal_analysis(db, date_before,event_date,date_after, x=None, y=None)
+# evolution of edits/creations/delete over a period of time of WAYS/NODES/RELATIONS
 
 # def impact_import_creationtomaintenance_ratio(db, groups, date_before, event_date, Graph_title)
+# WAYS/NODES/RELATIONS
 
 # def impact_import_creationtomaintenance_ratio_abnormal_return(db, groups, date_before, event_date, date_after)
+# WAYS/NODES/RELATIONS
 
 # def contribution_amenity_type_analysisv2(db,groups, date_before,event_date,date_after, x=None, y=None)
+# 
 
 # def top_amenity_evolution_per_group(db,groups, date_before,event_date,date_after, x=None, y=None)
+# NODES
 
-# def group_analyser(db, date_before, event_date , x = None, y = None)
+# def group_analyser(db, date_before, event_date)
+# WAYS/NODES/RELATIONS
 
 # def trim_95Perc_rule(data)
-
 
 
 #----------------------------------------------------------------------------------------------------------------
@@ -107,33 +113,33 @@ def abnormal_return_for_group(db, groups, date_before, event_date , date_after, 
 		dataAbnormal.append(data)
 
 	group_1 = go.Box(
-    	y=trim_95Perc_rule(dataAbnormal[0]),
+    	y=dataAbnormal[0],
     	name = 'Group 1',
     	boxpoints = False,
 	)
 	group_2 = go.Box(
-    	y=trim_95Perc_rule(dataAbnormal[1]),
+    	y=dataAbnormal[1],
     	name = 'Group 2',
     	boxpoints = False,
 	)
 	group_3 = go.Box(
-    	y=trim_95Perc_rule(dataAbnormal[2]),
+    	y=dataAbnormal[2],
     	name = 'Group 3',
     	boxpoints = False,
 	)
 	group_4 = go.Box(
-    	y=trim_95Perc_rule(dataAbnormal[3]),
+    	y=dataAbnormal[3],
     	name = 'Group 4',
     	boxpoints = False,
 	)
 	group_5 = go.Box(
-    	y=trim_95Perc_rule(dataAbnormal[4]),
+    	y=dataAbnormal[4],
     	name = 'Group 5',
     	boxpoints = False,
 	)
 
 	data = [group_1,group_2,group_3,group_4,group_5]
-	py.plot(data,filename='box-plots osm London 3 month')
+	py.plot(data,filename='box-plots osm London month')
 
 #=================================================================================================
 #=========Looking at evolution of deletes/creation and edits per day for a certain period=========
@@ -321,8 +327,36 @@ def impact_import_creationtomaintenance_ratio_abnormal_return(db, groups, date_b
 	for group in groups:
 		for user in group:
 			abnormal_return_per_group[group_num].append(dict_user_actual_ratio[user]-dict_user_expected_ratio[user])
-		print(abnormal_return_per_group[group_num])
 		group_num += 1
+
+	group_1 = go.Box(
+    	y=trim_95Perc_rule(abnormal_return_per_group[0]),
+    	name = 'Group 1',
+    	boxpoints = False,
+	)
+	group_2 = go.Box(
+    	y=trim_95Perc_rule(abnormal_return_per_group[1]),
+    	name = 'Group 2',
+    	boxpoints = False,
+	)
+	group_3 = go.Box(
+    	y=trim_95Perc_rule(abnormal_return_per_group[2]),
+    	name = 'Group 3',
+    	boxpoints = False,
+	)
+	group_4 = go.Box(
+    	y=trim_95Perc_rule(abnormal_return_per_group[3]),
+    	name = 'Group 4',
+    	boxpoints = False,
+	)
+	group_5 = go.Box(
+    	y=trim_95Perc_rule(abnormal_return_per_group[4]),
+    	name = 'Group 5',
+    	boxpoints = False,
+	)
+
+	data = [group_1,group_2,group_3,group_4,group_5]
+	py.plot(data,filename='box-plots osm creation ratio per group')
 
 	    
 
@@ -338,7 +372,7 @@ def contribution_amenity_type_analysis(db,groups, date_before,event_date,date_af
 	event_date_convert = datetime.strptime(event_date,'%Y%m%d')
 	date_before_convert = datetime.strptime(date_before,'%Y%m%d')
 	date_after_convert = datetime.strptime(date_after,'%Y%m%d')
-#user_name, count(*) as contributions
+	#user_name, count(*) as contributions
 	where_clause = ' '
 	if x!=None and y!=None and len(x) == 2 and len(y) == 2:
 		where_clause += 'AND latitude > '+str(x[1])+' AND longitude > '+str(x[0])+' AND latitude < '+str(y[1])+' AND longitude < '+str(y[0])
@@ -776,17 +810,6 @@ def top_amenity_evolution_per_group(db,groups, date_before,event_date,date_after
 	py.plot(fig, filename='grouped-bar-top-evolution')
 
 
-
-
-
-
-
-
-
-
-
-
-
 #-----------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------------
 #HELPER FUNCTIONS
@@ -862,6 +885,7 @@ def trim_95Perc_rule(data):
 			false_positive.append(num)
 
 	print("Disregarded Data Points: ")
+	print(false_positive)
 			
 	return data
 
