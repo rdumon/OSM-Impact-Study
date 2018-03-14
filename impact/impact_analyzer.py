@@ -1,8 +1,7 @@
 import sys
 import json
 import decimal
-from datetime import datetime
-
+import datetime
 import plotly
 import plotly.plotly as py
 import plotly.graph_objs as go
@@ -11,7 +10,7 @@ import numpy as np
 plotly.tools.set_credentials_file(username='aoussbai', api_key='uWPqQZwnbe5MgCrfqk3V')
 
 sys.path.insert(0, '../lib/')
-from amenities import *
+from lib.amenities import *
 # from db import DB
 
 #LIST OF FUNCTIONS IN THIS FILE:
@@ -27,9 +26,6 @@ from amenities import *
 
 # def impact_import_creationtomaintenance_ratio_abnormal_return(db, groups, date_before, event_date, date_after)
 # WAYS/NODES/RELATIONS
-
-# def contribution_amenity_type_analysisv2(db,groups, date_before,event_date,date_after, x=None, y=None)
-# 
 
 # def top_amenity_evolution_per_group(db,groups, date_before,event_date,date_after, x=None, y=None)
 # NODES
@@ -50,26 +46,21 @@ from amenities import *
 #==================================================================================
 #=========All dates should have the format 'YearMonthDate' i.e. '20090311'=========
 #==================================================================================
-def abnormal_return_for_group(db, groups, date_before, event_date , date_after, x = None, y = None):
+def abnormal_return_for_group(db, groups, date_before, event_date , date_after, x = None, y = None, dir_write_to = ''):
 
 	# If there is a location restriction
 	where_clause = ' '
 	if x!=None and y!=None and len(x) == 2 and len(y) == 2:
 		where_clause += 'AND latitude > '+str(x[1])+' AND longitude > '+str(x[0])+' AND latitude < '+str(y[1])+' AND longitude < '+str(y[0])
 
-	#Dates computations
-	event_date_convert = datetime.strptime(event_date,'%Y%m%d')
-	date_before_convert = datetime.strptime(date_before,'%Y%m%d')
-	date_after_convert = datetime.strptime(date_after,'%Y%m%d')
-
 	#The number of weeks between event date and the date before the event
-	diff_expected_user = (event_date_convert - date_before_convert).days /7
+	diff_expected_user = (event_date - date_before).days /7
 	#The number of weeks between event date and the date after the event
-	diff_actual_user = (date_after_convert - event_date_convert).days /7
+	diff_actual_user = (date_after - event_date).days /7
 
 	#Average number of edits per user per week for the six months before
   	#This query is location proof
-	expected_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT (SUM(contributions)/"+str(diff_expected_user)+") as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
+	expected_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d') + "' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT (SUM(contributions)/"+str(diff_expected_user)+") as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
 
 	expected = {}
 
@@ -78,7 +69,7 @@ def abnormal_return_for_group(db, groups, date_before, event_date , date_after, 
 
 	#query average contribution for each user in each group
 	actual_one_month = {}
-	actual_per_user_one_month = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at > '" + event_date_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + date_after_convert.strftime('%Y-%m-%d') +"'"+ where_clause + " GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at > '" + event_date_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + date_after_convert.strftime('%Y-%m-%d') + "' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at > '" + event_date_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + date_after_convert.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT (SUM(contributions)/"+str(diff_actual_user)+") as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
+	actual_per_user_one_month = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at > '" + event_date.strftime('%Y-%m-%d') + "' AND created_at < '" + date_after.strftime('%Y-%m-%d') +"'"+ where_clause + " GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at > '" + event_date.strftime('%Y-%m-%d') + "' AND created_at < '" + date_after.strftime('%Y-%m-%d') + "' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at > '" + event_date.strftime('%Y-%m-%d') + "' AND created_at < '" + date_after.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT (SUM(contributions)/"+str(diff_actual_user)+") as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
 	for a in actual_per_user_one_month:
 		actual_one_month[a[1]] = a[0]
 
@@ -95,33 +86,43 @@ def abnormal_return_for_group(db, groups, date_before, event_date , date_after, 
 		dataAbnormal.append(data)
 
 	group_1 = go.Box(
-    	y=dataAbnormal[0],
+    	y=trim_95Perc_rule(dataAbnormal[0]),
     	name = 'Group 1',
     	boxpoints = False,
 	)
 	group_2 = go.Box(
-    	y=dataAbnormal[1],
+    	y=trim_95Perc_rule(dataAbnormal[1]),
     	name = 'Group 2',
     	boxpoints = False,
 	)
 	group_3 = go.Box(
-    	y=dataAbnormal[2],
+    	y=trim_95Perc_rule(dataAbnormal[2]),
     	name = 'Group 3',
     	boxpoints = False,
 	)
 	group_4 = go.Box(
-    	y=dataAbnormal[3],
+    	y=trim_95Perc_rule(dataAbnormal[3]),
     	name = 'Group 4',
     	boxpoints = False,
 	)
 	group_5 = go.Box(
-    	y=dataAbnormal[4],
+    	y=trim_95Perc_rule(dataAbnormal[4]),
     	name = 'Group 5',
     	boxpoints = False,
 	)
 
+	layout = go.Layout(
+		title = "Abnormal Return " +str(diff_actual_user) + " weeks after event",
+	    width=3600, height=2400,
+	    yaxis = dict(range = [min(dataAbnormal[4])-decimal.Decimal(50.0),max(dataAbnormal[4])+decimal.Decimal(50.0)]),
+
+	)
+
 	data = [group_1,group_2,group_3,group_4,group_5]
-	py.plot(data,filename='box-plots osm London month')
+	fig = dict(data = data, layout = layout)
+
+	# py.plot(data,filename='box-plots osm London month')
+	py.image.save_as(fig, filename=dir_write_to+'/abnormalReturnContrib'+str(diff_actual_user)+'-'+event_date.strftime('%Y-%m-%d')+'.png')
 
 #=================================================================================================
 #=========Looking at evolution of deletes/creation and edits per day for a certain period=========
@@ -129,36 +130,36 @@ def abnormal_return_for_group(db, groups, date_before, event_date , date_after, 
 def contribution_types_gobal_analysis(db, date_before,event_date,date_after, x=None, y=None):
 
 	#Dates computations
-	event_date_convert = datetime.strptime(event_date,'%Y%m%d')
-	date_before_convert = datetime.strptime(date_before,'%Y%m%d')
-	date_after_convert = datetime.strptime(date_after,'%Y%m%d')
+	event_date_convert = datetime.datetime.strptime(event_date,'%Y%m%d')
+	date_before_convert = datetime.datetime.strptime(date_before,'%Y%m%d')
+	date_after_convert = datetime.datetime.strptime(date_after,'%Y%m%d')
 
 	#work out evolution of delete contributions
-	delete_per_day = db.execute(["with C as((SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM nodes WHERE  created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.strftime('%Y-%m-%d')+"'"+ " AND deleted = true GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM ways WHERE  created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.strftime('%Y-%m-%d')+"'"+ " AND deleted = true GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM relations WHERE  created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.strftime('%Y-%m-%d')+"'"+ " AND deleted = true GROUP BY created_at)) SELECT created_at,SUM(contrib_deletion) as sum_contrib_deletion FROM C GROUP BY created_at ORDER BY created_at" ])
+	delete_per_day = db.execute(["with C as((SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM nodes WHERE  created_at >= '" + date_before_convert.datetime.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.datetime.strftime('%Y-%m-%d')+"'"+ " AND deleted = true GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM ways WHERE  created_at >= '" + date_before_convert.datetime.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.datetime.strftime('%Y-%m-%d')+"'"+ " AND deleted = true GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM relations WHERE  created_at >= '" + date_before_convert.datetime.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.datetime.strftime('%Y-%m-%d')+"'"+ " AND deleted = true GROUP BY created_at)) SELECT created_at,SUM(contrib_deletion) as sum_contrib_deletion FROM C GROUP BY created_at ORDER BY created_at" ])
 
 	delete_per_day_x = []
 	delete_per_day_y = []
 	for a in delete_per_day:
-		delete_per_day_x.append((datetime.strptime(a[0],'%Y%m%d')).strftime('%Y-%m-%d'))
+		delete_per_day_x.append((datetime.datetime.strptime(a[0],'%Y%m%d')).strftime('%Y-%m-%d'))
 		delete_per_day_y.append(a[1])
 
 
 	#work out evolution of creation contributions
-	creation_per_day = db.execute(["with C as((SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM nodes WHERE  created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.strftime('%Y-%m-%d')+"'"+ " AND version = 1 GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM ways WHERE  created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.strftime('%Y-%m-%d')+"'"+ " AND version = 1 GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM relations WHERE  created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.strftime('%Y-%m-%d')+"'"+ " AND version = 1 GROUP BY created_at)) SELECT created_at,SUM(contrib_deletion) as sum_contrib_deletion FROM C GROUP BY created_at ORDER BY created_at" ])
+	creation_per_day = db.execute(["with C as((SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM nodes WHERE  created_at >= '" + date_before_convert.datetime.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.datetime.strftime('%Y-%m-%d')+"'"+ " AND version = 1 GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM ways WHERE  created_at >= '" + date_before_convert.datetime.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.datetime.strftime('%Y-%m-%d')+"'"+ " AND version = 1 GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM relations WHERE  created_at >= '" + date_before_convert.datetime.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.datetime.strftime('%Y-%m-%d')+"'"+ " AND version = 1 GROUP BY created_at)) SELECT created_at,SUM(contrib_deletion) as sum_contrib_deletion FROM C GROUP BY created_at ORDER BY created_at" ])
 
 	creation_per_day_x = []
 	creation_per_day_y = []
 	for a in creation_per_day:
-		creation_per_day_x.append((datetime.strptime(a[0],'%Y%m%d')).strftime('%Y-%m-%d'))
+		creation_per_day_x.append((datetime.datetime.strptime(a[0],'%Y%m%d')).strftime('%Y-%m-%d'))
 		creation_per_day_y.append(a[1])
 
 	# #work out evolution of edits contributions
-	edits_per_day = db.execute(["with C as((SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM nodes WHERE  created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.strftime('%Y-%m-%d')+"'"+ " AND deleted = false AND version != 1 GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM ways WHERE  created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.strftime('%Y-%m-%d')+"'"+ " AND deleted = false AND version != 1 GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM relations WHERE  created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.strftime('%Y-%m-%d')+"'"+ " AND deleted = false AND version != 1 GROUP BY created_at)) SELECT created_at,SUM(contrib_deletion) as sum_contrib_deletion FROM C GROUP BY created_at ORDER BY created_at" ])
+	edits_per_day = db.execute(["with C as((SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM nodes WHERE  created_at >= '" + date_before_convert.datetime.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.datetime.strftime('%Y-%m-%d')+"'"+ " AND deleted = false AND version != 1 GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM ways WHERE  created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.datetime.strftime('%Y-%m-%d')+"'"+ " AND deleted = false AND version != 1 GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM relations WHERE  created_at >= '" + date_before_convert.datetime.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after_convert.datetime.strftime('%Y-%m-%d')+"'"+ " AND deleted = false AND version != 1 GROUP BY created_at)) SELECT created_at,SUM(contrib_deletion) as sum_contrib_deletion FROM C GROUP BY created_at ORDER BY created_at" ])
 
 	edits_per_day_x = []
 	edits_per_day_y = []
 	for a in edits_per_day:
-		edits_per_day_x.append((datetime.strptime(a[0],'%Y%m%d')).strftime('%Y-%m-%d'))
+		edits_per_day_x.append((datetime.datetime.strptime(a[0],'%Y%m%d')).strftime('%Y-%m-%d'))
 		edits_per_day_y.append(a[1])
 
 	#plotting
@@ -184,7 +185,7 @@ def contribution_types_gobal_analysis(db, date_before,event_date,date_after, x=N
 	)
 
 	trace4 = go.Scatter(
-    x = [event_date_convert.strftime('%Y-%m-%d'),event_date_convert.strftime('%Y-%m-%d')],
+    x = [event_date_convert.datetime.strftime('%Y-%m-%d'),event_date_convert.datetime.strftime('%Y-%m-%d')],
     y = [-20,70000],
     mode = 'lines',
     name = 'Day of Import'
@@ -716,16 +717,13 @@ def group_analyser(db, date_before, event_date , x = None, y = None):
 	if x!=None and y!=None and len(x) == 2 and len(y) == 2:
 		where_clause += 'AND latitude > '+str(x[1])+' AND longitude > '+str(x[0])+' AND latitude < '+str(y[1])+' AND longitude < '+str(y[0])
 
-	#Dates computations
-	event_date_convert = datetime.strptime(event_date,'%Y%m%d')
-	date_before_convert = datetime.strptime(date_before,'%Y%m%d')
 
 	#The number of weeks between event date and the date before the event
-	diff_expected_user = (event_date_convert - date_before_convert).days /7
+	diff_expected_user = (event_date - date_before).days /7
 
 	#Average number of edits per user per week for the six months before
   	#This query is location proof
-	expected_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT (SUM(contributions)/"+str(diff_expected_user)+") as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
+	expected_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d') + "' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT (SUM(contributions)/"+str(diff_expected_user)+") as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
 
 	# a[0]: nb contrib/semaine
 	# a[1]: user

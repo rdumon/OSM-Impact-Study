@@ -24,12 +24,12 @@ from lib.amenities import *
 # X is the lower left point
 # Y is the upper right point
 
-def detectImport(db,cityName=''):
+def detectImport(db,cityName='', x = None , y = None):
 
     # If there is a location restriction
     where_clause = ''
-    # if x!=None and y!=None and len(x) == 2 and len(y) == 2:
-    #     where_clause = 'where (latitude > '+str(x[1])+' and longitude > '+str(x[0])+') and (latitude < '+str(y[1])+' and longitude < '+str(y[0])+')'
+    if x!=None and y!=None and len(x) == 2 and len(y) == 2:
+        where_clause = 'where (latitude > '+str(x[1])+' and longitude > '+str(x[0])+') and (latitude < '+str(y[1])+' and longitude < '+str(y[0])+')'
 
     # Queries
     creation_date_query = 'select user_name, to_char(min(created_at),\'YYYYMMDD\') as created_at from nodes '+where_clause+' group by user_name'
@@ -300,11 +300,11 @@ def find_contribution_type_of_import(db, iMport = [], table =""):
     list_top.append(dict(sorted(list(dict_amenities_right_fields.items()), key=operator.itemgetter(1), reverse=True)[:5]))
     list_top.append(dict(sorted(list(dict_amenities_left_fields.items()), key=operator.itemgetter(1), reverse=True)[:5]))
 
-    print("Top 5 for the left fields of the tags:")
-    print(dict(sorted(list(dict_amenities_right_fields.items()), key=operator.itemgetter(1), reverse=True)[:3]))
-    print("Top 5 for the right fields of the tags:")
-    print(dict(sorted(list(dict_amenities_left_fields.items()), key=operator.itemgetter(1), reverse=True)[:3]))
-    print("Unidentified fields were ignored : " + str(unidentified))
+    # print("Top 5 for the left fields of the tags:")
+    # print(dict(sorted(list(dict_amenities_right_fields.items()), key=operator.itemgetter(1), reverse=True)[:3]))
+    # print("Top 5 for the right fields of the tags:")
+    # print(dict(sorted(list(dict_amenities_left_fields.items()), key=operator.itemgetter(1), reverse=True)[:3]))
+    # print("Unidentified fields were ignored : " + str(unidentified))
 
     return list_top
 
@@ -314,11 +314,11 @@ def imports_report(db, imports= []):
     array = []
     for iMport in imports:
         array.append(iMport)
-        print("#################################################################################################")
-        print("The import happened in "+ iMport[0].strftime('%Y-%m-%d') + " and was done by user : "+ iMport[1])
-        print("Analysing its nodes: ".upper())
+        # print("#################################################################################################")
+        # print("The import happened in "+ iMport[0].strftime('%Y-%m-%d') + " and was done by user : "+ iMport[1])
+        # print("Analysing its nodes: ".upper())
         array.append(find_contribution_type_of_import(db, iMport, "nodes"))
-        print("Analysing its ways: ".upper())
+        # print("Analysing its ways: ".upper())
         array.append(find_contribution_type_of_import(db, iMport, "ways"))
         imports_information.append(array)
         array = []

@@ -11,7 +11,7 @@ from lib.db import DB
 
 
 #Import info is the array expecting the [[datetime.datetime(2009, 8, 17, 0, 0), 'NaPTAN']] and the name of the city
-def draw_heatMap(db, importInfo = [], x=None, y=None):
+def draw_heatMap(db, importInfo = [], x=None, y=None, city = '', dir_write_to = ''):
 
 	where_clause = ''
 	if x!=None and y!=None and len(x) == 2 and len(y) == 2:
@@ -23,7 +23,7 @@ def draw_heatMap(db, importInfo = [], x=None, y=None):
 	user_name = importInfo[0][1] 
 	date_convert = importInfo[0][0]
 
-	query = "SELECT latitude, longitude  FROM nodes WHERE created_at > '" + date_convert.strftime('%Y-%m-%d') + " 00:00:00' AND created_at < '" + date_convert.strftime('%Y-%m-%d') + " 24:00:00' AND user_name = '"+user_name+"'  "+where_clause+" GROUP BY latitude, longitude"
+	query = "SELECT latitude, longitude  FROM nodes WHERE created_at > '" + date_convert.strftime('%Y-%m-%d') + " 00:00:00' AND created_at < '" + date_convert.strftime('%Y-%m-%d') + " 24:00:00' AND user_name = '"+user_name+"' AND "+where_clause+" GROUP BY latitude, longitude"
 
 
 	nodes = db.execute([query])
@@ -42,14 +42,16 @@ def draw_heatMap(db, importInfo = [], x=None, y=None):
 	        lon=longs,
 	        mode='markers',
 	        marker=Marker(
-	            size=5,
+	            size=3,
 	            color='rgb('+str(random.randint(0, 155))+','+str(random.randint(0, 155))+','+str(random.randint(0, 155))+')',
 	        )
 	        
 	    )
 	])
 	layout = Layout(
+		title = "Map of Import in " + city + " on the " + date_convert.strftime('%Y-%m-%d') + " by " + user_name,
 	    autosize=True,
+	    width=3600, height=2400,
 	    hovermode='closest',
 	    mapbox=dict(
 	        accesstoken=mapbox_access_token,
@@ -59,9 +61,10 @@ def draw_heatMap(db, importInfo = [], x=None, y=None):
 	            lon=middle_long
 	        ),
 	        pitch=0,
-	        zoom=10
+	        zoom=9
 	    ),
 	)
 
 	fig = dict(data=data, layout=layout)
-	py.plot(fig, filename='Multiple Mapbox')
+	# py.plot(fig, filename='Multiple Mapbox')
+	py.image.save_as(fig, filename=dir_write_to+'/import-'+city+'-'+date_convert.strftime('%Y-%m-%d')+'.png')
