@@ -388,7 +388,7 @@ def top_amenity_evolution_per_group(db, date_before,event_date,date_after, x=Non
 	#amenity_type_per_user_before = db.execute(["with C as((SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+" 00:00:00' GROUP BY user_name)UNION ALL (SELECT json_agg(tags) as tags, user_name FROM ways WHERE created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + " 00:00:00' GROUP BY user_name)"])
 
 	refDict = build_dictionary_of_amenities()  
-	forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w", "name", "1", "4", "unclassified"}
+	forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w", "name", "1", "4", "unclassified", "-1"}
 	absol_dict = get_amenities_top()
 	groups = group_analyser(db, date_before, event_date, x, y)
 	
