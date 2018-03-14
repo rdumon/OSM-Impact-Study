@@ -347,10 +347,10 @@ def impact_import_creationtomaintenance_ratio_abnormal_return(db, groups, date_b
 #=========================================================================================#
 #===Looking at evolution of the most edited amenity types per user for a certain period===#
 #=========================================================================================#
-def top_amenity_evolution_per_group(db,groups, date_before,event_date,date_after, x=None, y=None):
+def top_amenity_evolution_per_group(db, date_before,event_date,date_after, x=None, y=None):
 
 	#Dates computations
-	event_date_convert = datetime.strptime(event_date,'%Y%m%d')
+	event_date_convert =  datetime.strptime(event_date,'%Y%m%d')
 	date_before_convert = datetime.strptime(date_before,'%Y%m%d')
 	date_after_convert = datetime.strptime(date_after,'%Y%m%d')
 
@@ -358,13 +358,39 @@ def top_amenity_evolution_per_group(db,groups, date_before,event_date,date_after
 	if x!=None and y!=None and len(x) == 2 and len(y) == 2:
 		where_clause += 'AND latitude > '+str(x[1])+' AND longitude > '+str(x[0])+' AND latitude < '+str(y[1])+' AND longitude < '+str(y[0])
 
+	amenity_type_per_user_before_nodes= " SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at >= '" + date_before_convert.strftime('%Y-%m-%d') +"' AND created_at < '" + (event_date_convert + timedelta(days=-1)).strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name"
 
-	amenity_type_per_user_before = db.execute([" SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at >= '" + date_before_convert.strftime('%Y-%m-%d') +"' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name"])
-	amenity_type_per_user_after = db.execute([" SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at < '" + date_after_convert.strftime('%Y-%m-%d') +"' AND created_at > '" + event_date_convert.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name"])
+	amenity_type_per_user_after_nodes = " SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at < '" + date_after_convert.strftime('%Y-%m-%d') +"' AND created_at > '" + event_date_convert.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name"
+
+	amenity_type_per_user_before_ways= " SELECT json_agg(tags) as tags, user_name FROM ways WHERE created_at >= '" + date_before_convert.strftime('%Y-%m-%d') +"' AND created_at < '" + (event_date_convert + timedelta(days=-1)).strftime('%Y-%m-%d')+"' GROUP BY user_name"
+
+	amenity_type_per_user_after_ways = " SELECT json_agg(tags) as tags, user_name FROM ways WHERE created_at < '" + date_after_convert.strftime('%Y-%m-%d') +"' AND created_at > '" + event_date_convert.strftime('%Y-%m-%d')+"' GROUP BY user_name"
+
+	amenity_type_per_user_before_all = "SELECT json_agg(result.tags) as tags, result.user_name FROM (" + amenity_type_per_user_before_nodes + " UNION ALL " + amenity_type_per_user_before_ways+") AS result GROUP BY result.user_name"
+
+	amenity_type_per_user_after_all = "SELECT json_agg(result.tags) as tags, result.user_name FROM (" + amenity_type_per_user_after_nodes + " UNION ALL " + amenity_type_per_user_after_ways+") AS result GROUP BY result.user_name"
+
+	analysis_before = db.execute([amenity_type_per_user_before_all])
+	analysis_after = db.execute([amenity_type_per_user_after_all])
+
+
+
 	
+
+	
+	
+
+
+
+
+
+    
+	#amenity_type_per_user_before = db.execute(["with C as((SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+" 00:00:00' GROUP BY user_name)UNION ALL (SELECT json_agg(tags) as tags, user_name FROM ways WHERE created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + " 00:00:00' GROUP BY user_name)"])
+
 	refDict = build_dictionary_of_amenities()  
-	forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w", "name"}
+	forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w", "name", "1", "4", "unclassified", "-1"}
 	absol_dict = get_amenities_top()
+	groups = group_analyser(db, date_before, event_date, x, y)
 	
 
 	top1 = list(absol_dict)[2]
@@ -401,139 +427,151 @@ def top_amenity_evolution_per_group(db,groups, date_before,event_date,date_after
 	dict52 = {}
 
 
-	for fields in amenity_type_per_user_before:
+	for fields in analysis_before:
 		if fields[1] in groups[0]:
 			for tag in fields[0]:
 					for data in tag:
-						if tag[data] in dict_top and tag[data] not in forbiddenEntries:
-							if tag[data] in dict_top1:
-								dict_top1[tag[data]]+=1
-							else:
-								dict_top1[tag[data]] =1
-						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-							if tag[data] in dict1: 
-								dict1[tag[data]]+=1
-							else: 
-								dict1[tag[data]] =1
+						for detail in data: 
+							if data[detail] in dict_top and data[detail] not in forbiddenEntries:
+								if data[detail] in dict_top1:
+									dict_top1[data[detail]]+=1
+								else:
+									dict_top1[data[detail]] =1
+							if data[detail] in refDict and data[detail] not in forbiddenEntries: 
+								if data[detail] in dict1: 
+									dict1[data[detail]]+=1
+								else: 
+									dict1[data[detail]] =1
 		if fields[1] in groups[1]:
 			for tag in fields[0]:
 					for data in tag:
-						if tag[data] in dict_top and tag[data] not in forbiddenEntries:
-							if tag[data] in dict_top2:
-								dict_top2[tag[data]]+=1
-							else:
-								dict_top2[tag[data]] =1
-						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-							if tag[data] in dict2: 
-								dict2[tag[data]]+=1
-							else: 
-								dict2[tag[data]] =1
+						for detail in data: 
+							if data[detail] in dict_top and data[detail] not in forbiddenEntries:
+								if data[detail] in dict_top2:
+									dict_top2[data[detail]]+=1
+								else:
+									dict_top2[data[detail]] =1
+							if data[detail] in refDict and data[detail] not in forbiddenEntries: 
+								if data[detail] in dict2: 
+									dict2[data[detail]]+=1
+								else: 
+									dict2[data[detail]] =1
 		if fields[1] in groups[2]:
 			for tag in fields[0]:
 					for data in tag:
-						if tag[data] in dict_top and tag[data] not in forbiddenEntries:
-							if tag[data] in dict_top3:
-								dict_top3[tag[data]]+=1
-							else:
-								dict_top3[tag[data]] =1
-						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-							if tag[data] in dict3: 
-								dict3[tag[data]]+=1
-							else: 
-								dict3[tag[data]] =1
+						for detail in data: 
+							if data[detail] in dict_top and data[detail] not in forbiddenEntries:
+								if data[detail] in dict_top3:
+									dict_top3[data[detail]]+=1
+								else:
+									dict_top3[data[detail]] =1
+							if data[detail] in refDict and data[detail] not in forbiddenEntries: 
+								if data[detail] in dict3: 
+									dict3[data[detail]]+=1
+								else: 
+									dict3[data[detail]] =1
 		if fields[1] in groups[3]:
 			for tag in fields[0]:
 					for data in tag:
-						if tag[data] in dict_top and tag[data] not in forbiddenEntries:
-							if tag[data] in dict_top4:
-								dict_top4[tag[data]]+=1
-							else:
-								dict_top4[tag[data]] =1
-						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-							if tag[data] in dict4: 
-								dict4[tag[data]]+=1
-							else: 
-								dict4[tag[data]] =1
+						for detail in data: 
+							if data[detail] in dict_top and data[detail] not in forbiddenEntries:
+								if data[detail] in dict_top4:
+									dict_top4[data[detail]]+=1
+								else:
+									dict_top4[data[detail]] =1
+							if data[detail] in refDict and data[detail] not in forbiddenEntries: 
+								if data[detail] in dict4: 
+									dict4[data[detail]]+=1
+								else: 
+									dict4[data[detail]] =1
 		if fields[1] in groups[4]:
 			for tag in fields[0]:
 					for data in tag:
-						if tag[data] in dict_top and tag[data] not in forbiddenEntries:
-							if tag[data] in dict_top5:
-								dict_top5[tag[data]]+=1
-							else:
-								dict_top5[tag[data]] =1
-						if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-							if tag[data] in dict5: 
-								dict5[tag[data]]+=1
-							else: 
-								dict5[tag[data]] =1
+						for detail in data: 
+							if data[detail] in dict_top and data[detail] not in forbiddenEntries:
+								if data[detail] in dict_top5:
+									dict_top5[data[detail]]+=1
+								else:
+									dict_top5[data[detail]] =1
+							if data[detail] in refDict and data[detail] not in forbiddenEntries: 
+								if data[detail] in dict5: 
+									dict5[data[detail]]+=1
+								else: 
+									dict5[data[detail]] =1
 
-		for fields in amenity_type_per_user_after:
+
+
+		for fields in analysis_after:
 			if fields[1] in groups[0]:
 				for tag in fields[0]:
 						for data in tag:
-							if tag[data] in dict_top and tag[data] not in forbiddenEntries:
-								if tag[data] in dict_top12:
-									dict_top12[tag[data]]+=1
-								else:
-									dict_top12[tag[data]] =1
-							if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-								if tag[data] in dict12: 
-									dict12[tag[data]]+=1
-								else: 
-									dict12[tag[data]] =1
+							for detail in data: 
+								if data[detail] in dict_top and data[detail] not in forbiddenEntries:
+									if data[detail] in dict_top12:
+										dict_top12[data[detail]]+=1
+									else:
+										dict_top12[data[detail]] =1
+								if data[detail] in refDict and data[detail] not in forbiddenEntries: 
+									if data[detail] in dict12: 
+										dict12[data[detail]]+=1
+									else: 
+										dict12[data[detail]] =1
 			if fields[1] in groups[1]:
 				for tag in fields[0]:
 						for data in tag:
-							if tag[data] in dict_top and tag[data] not in forbiddenEntries:
-								if tag[data] in dict_top22:
-									dict_top22[tag[data]]+=1
-								else:
-									dict_top22[tag[data]] =1
-							if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-								if tag[data] in dict22: 
-									dict22[tag[data]]+=1
-								else: 
-									dict22[tag[data]] =1
+							for detail in data: 
+								if data[detail] in dict_top and data[detail] not in forbiddenEntries:
+									if data[detail] in dict_top22:
+										dict_top22[data[detail]]+=1
+									else:
+										dict_top22[data[detail]] =1
+								if data[detail] in refDict and data[detail] not in forbiddenEntries: 
+									if data[detail] in dict22: 
+										dict22[data[detail]]+=1
+									else: 
+										dict22[data[detail]] =1
 			if fields[1] in groups[2]:
 				for tag in fields[0]:
 						for data in tag:
-							if tag[data] in dict_top and tag[data] not in forbiddenEntries:
-								if tag[data] in dict_top32:
-									dict_top32[tag[data]]+=1
-								else:
-									dict_top32[tag[data]] =1
-							if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-								if tag[data] in dict32: 
-									dict32[tag[data]]+=1
-								else: 
-									dict32[tag[data]] =1
+							for detail in data: 
+								if data[detail] in dict_top and data[detail] not in forbiddenEntries:
+									if data[detail] in dict_top32:
+										dict_top32[data[detail]]+=1
+									else:
+										dict_top32[data[detail]] =1
+								if data[detail] in refDict and data[detail] not in forbiddenEntries: 
+									if data[detail] in dict32: 
+										dict32[data[detail]]+=1
+									else: 
+										dict32[data[detail]] =1
 			if fields[1] in groups[3]:
 				for tag in fields[0]:
 						for data in tag:
-							if tag[data] in dict_top and tag[data] not in forbiddenEntries:
-								if tag[data] in dict_top42:
-									dict_top42[tag[data]]+=1
-								else:
-									dict_top42[tag[data]] =1
-							if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-								if tag[data] in dict42: 
-									dict42[tag[data]]+=1
-								else: 
-									dict42[tag[data]] =1
+							for detail in data: 
+								if data[detail] in dict_top and data[detail] not in forbiddenEntries:
+									if data[detail] in dict_top42:
+										dict_top42[data[detail]]+=1
+									else:
+										dict_top42[data[detail]] =1
+								if data[detail] in refDict and data[detail] not in forbiddenEntries: 
+									if data[detail] in dict42: 
+										dict42[data[detail]]+=1
+									else: 
+										dict42[data[detail]] =1
 			if fields[1] in groups[4]:
 				for tag in fields[0]:
 						for data in tag:
-							if tag[data] in dict_top and tag[data] not in forbiddenEntries:
-								if tag[data] in dict_top52:
-									dict_top52[tag[data]]+=1
-								else:
-									dict_top52[tag[data]] =1
-							if tag[data] in refDict and tag[data] not in forbiddenEntries: 
-								if tag[data] in dict52: 
-									dict52[tag[data]]+=1
-								else: 
-									dict52[tag[data]] =1
+							for detail in data: 
+								if data[detail] in dict_top and data[detail] not in forbiddenEntries:
+									if data[detail] in dict_top52:
+										dict_top52[data[detail]]+=1
+									else:
+										dict_top52[data[detail]] =1
+								if data[detail] in refDict and data[detail] not in forbiddenEntries: 
+									if data[detail] in dict52: 
+										dict52[data[detail]]+=1
+									else: 
+										dict52[data[detail]] =1
 
 
 
