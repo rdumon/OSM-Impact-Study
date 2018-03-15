@@ -8,9 +8,11 @@ import plotly.graph_objs as go
 import operator
 import numpy as np
 plotly.tools.set_credentials_file(username='aoussbai', api_key='uWPqQZwnbe5MgCrfqk3V')
+sys.path.insert(0, '../import_detection/')
+from detector import *
 
 sys.path.insert(0, '../lib/')
-from lib.amenities import *
+from amenities import *
 # from db import DB
 
 #LIST OF FUNCTIONS IN THIS FILE:
@@ -347,24 +349,22 @@ def impact_import_creationtomaintenance_ratio_abnormal_return(db, groups, date_b
 #=========================================================================================#
 #===Looking at evolution of the most edited amenity types per user for a certain period===#
 #=========================================================================================#
-def top_amenity_evolution_per_group(db, date_before,event_date,date_after, x=None, y=None):
+def top_amenity_evolution_per_group(db, date_before,event_date,date_after, iMport, x=None, y=None):
 
 	#Dates computations
-	event_date_convert =  datetime.strptime(event_date,'%Y%m%d')
-	date_before_convert = datetime.strptime(date_before,'%Y%m%d')
-	date_after_convert = datetime.strptime(date_after,'%Y%m%d')
+	
 
 	where_clause = ' '
 	if x!=None and y!=None and len(x) == 2 and len(y) == 2:
 		where_clause += 'AND latitude > '+str(x[1])+' AND longitude > '+str(x[0])+' AND latitude < '+str(y[1])+' AND longitude < '+str(y[0])
 
-	amenity_type_per_user_before_nodes= " SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at >= '" + date_before_convert.strftime('%Y-%m-%d') +"' AND created_at < '" + (event_date_convert + timedelta(days=-1)).strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name"
+	amenity_type_per_user_before_nodes= " SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at >= '" + date_before.strftime('%Y-%m-%d') +"' AND created_at < '" + event_date.strftime('%Y-%m-%d')+" 24:00:00'"+ where_clause + " GROUP BY user_name"
 
-	amenity_type_per_user_after_nodes = " SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at < '" + date_after_convert.strftime('%Y-%m-%d') +"' AND created_at > '" + event_date_convert.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name"
+	amenity_type_per_user_after_nodes = " SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at < '" + date_after.strftime('%Y-%m-%d') +"' AND created_at > '" + event_date.strftime('%Y-%m-%d')+" 00:00:00'"+ where_clause + " GROUP BY user_name"
 
-	amenity_type_per_user_before_ways= " SELECT json_agg(tags) as tags, user_name FROM ways WHERE created_at >= '" + date_before_convert.strftime('%Y-%m-%d') +"' AND created_at < '" + (event_date_convert + timedelta(days=-1)).strftime('%Y-%m-%d')+"' GROUP BY user_name"
+	amenity_type_per_user_before_ways= " SELECT json_agg(tags) as tags, user_name FROM ways WHERE created_at >= '" + date_before.strftime('%Y-%m-%d') +"' AND created_at < '" + event_date.strftime('%Y-%m-%d')+" 24:00:00' GROUP BY user_name"
 
-	amenity_type_per_user_after_ways = " SELECT json_agg(tags) as tags, user_name FROM ways WHERE created_at < '" + date_after_convert.strftime('%Y-%m-%d') +"' AND created_at > '" + event_date_convert.strftime('%Y-%m-%d')+"' GROUP BY user_name"
+	amenity_type_per_user_after_ways = " SELECT json_agg(tags) as tags, user_name FROM ways WHERE created_at < '" + date_after.strftime('%Y-%m-%d') +"' AND created_at > '" + event_date.strftime('%Y-%m-%d')+" 00:00:00' GROUP BY user_name"
 
 	amenity_type_per_user_before_all = "SELECT json_agg(result.tags) as tags, result.user_name FROM (" + amenity_type_per_user_before_nodes + " UNION ALL " + amenity_type_per_user_before_ways+") AS result GROUP BY result.user_name"
 
@@ -385,18 +385,19 @@ def top_amenity_evolution_per_group(db, date_before,event_date,date_after, x=Non
 
 
     
-	#amenity_type_per_user_before = db.execute(["with C as((SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+" 00:00:00' GROUP BY user_name)UNION ALL (SELECT json_agg(tags) as tags, user_name FROM ways WHERE created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + " 00:00:00' GROUP BY user_name)"])
+	
 
 	refDict = build_dictionary_of_amenities()  
 	forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w", "name", "1", "4", "unclassified", "-1"}
-	absol_dict = get_amenities_top()
+	absol_dict = get_amenities_top(db, iMport)
 	groups = group_analyser(db, date_before, event_date, x, y)
 	
 
 	top1 = list(absol_dict)[2]
 	top2 = list(absol_dict)[1]
 	top3 = list(absol_dict)[0]
-	dict_top = {top1, top2, top3}
+	dict_top = {top2, top3}
+	print(dict_top)
 
 
 #=====================Before the import====================================
@@ -721,26 +722,41 @@ def top_amenity_evolution_per_group(db, date_before,event_date,date_after, x=Non
 #-----------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------------
 
-#======================================================================================================
-#=========COMPUTES THE ABSOLUTE TOP 3 OF MOST EDITED AMENITIES AMONG NODES, WAYS AND RELATIONS=========
-#======================================================================================================
+#===================================================================================================================
+#=========DETECTS THE ABSOLUTE TOP 3 OF MOST EDITED AMENITIES AMONG NODES, WAYS AND RELATIONS OF AN IMPORT=========
+#===================================================================================================================
 
-def get_amenities_top():
+def get_amenities_top(db, iMport=[]):
 
-	top =  [{'stop': 3282, 'bus_stop': 40200, 'no': 40200, 's': 8978, 'w': 7314}, {'prefeitura': 0, 'taxi_school': 0, 'kibanda cha mkaa': 0, 'highway': 40200, 'name': 40200}], [{'prefeitura': 0, 'taxi_school': 0, 'kibanda cha mkaa': 0, 'inss': 0, 'mausoleum': 0}, {'prefeitura': 0, 'taxi_school': 0, 'kibanda cha mkaa': 0, 'inss': 0, 'mausoleum': 0}]
-	forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w", "name"}
+	top = []
+	for i in range(1, len(iMport)):
+		for element in iMport[i]:
+			top.append(element)
+
+
+	forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w", "name", "1", "4", "unclassified", "-1"}
 	dict_top = {}
 
 	for i in top:
 		for elements in i: 
-			for items in elements:
-				if items not in dict_top and items not in forbiddenEntries:
-					dict_top[items] = elements[items]
+			if elements not in dict_top and elements not in forbiddenEntries:
+				dict_top[elements] = i[elements]
+
+	if len(dict_top)==2:
+		dict_top["not provided"]=0
+	if len(dict_top)==1:
+		dict_top["not provided1"]=0
+		dict_top["not provided2"]=0
+
+
 
 
 	absol_dict = dict(sorted(dict_top.items(), key=operator.itemgetter(1), reverse=True)[:3])
 
-	return absol_dict
+	
+
+
+	print(absol_dict)
 
 
 
