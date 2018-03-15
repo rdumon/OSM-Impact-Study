@@ -349,7 +349,7 @@ def impact_import_creationtomaintenance_ratio_abnormal_return(db, groups, date_b
 #=========================================================================================#
 #===Looking at evolution of the most edited amenity types per user for a certain period===#
 #=========================================================================================#
-def top_amenity_evolution_per_group(db, date_before,event_date,date_after, iMport, x=None, y=None):
+def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_date,date_after, iMport, x=None, y=None, import_dir =''):
 
 	#Dates computations
 	
@@ -396,8 +396,8 @@ def top_amenity_evolution_per_group(db, date_before,event_date,date_after, iMpor
 	top1 = list(absol_dict)[2]
 	top2 = list(absol_dict)[1]
 	top3 = list(absol_dict)[0]
-	dict_top = {top2, top3}
-	print(dict_top)
+	dict_top = {top1, top2, top3}
+	
 
 
 #=====================Before the import====================================
@@ -616,6 +616,19 @@ def top_amenity_evolution_per_group(db, date_before,event_date,date_after, iMpor
 		total5+=sorted_dict5[i][1]
 
 
+	if total1 ==0:
+		total1=1
+	if total2 ==0:
+		total2=1
+	if total3 ==0:
+		total3=1
+	if total4 ==0:
+		total4=1
+	if total5 ==0:
+		total5=1
+	
+
+
 	for i in range (0, len(sorted_dict12)-1):
 		total12+=sorted_dict12[i][1]
 	for i in range (0, len(sorted_dict22)-1):
@@ -626,6 +639,18 @@ def top_amenity_evolution_per_group(db, date_before,event_date,date_after, iMpor
 		total42+=sorted_dict42[i][1]
 	for i in range (0, len(sorted_dict52)-1):
 		total52+=sorted_dict52[i][1]
+
+	if total12 ==0:
+		total12=1
+	if total22 ==0:
+		total22=1
+	if total32 ==0:
+		total32=1
+	if total42 ==0:
+		total42=1
+	if total52 ==0:
+		total52=1
+	
 
 
 	for i in dict_top:
@@ -665,7 +690,7 @@ def top_amenity_evolution_per_group(db, date_before,event_date,date_after, iMpor
 	data = [trace_top1, trace_top2, trace_top3]
 	layout = go.Layout(barmode='group')
 	fig = go.Figure(data=data, layout=layout)
-	py.plot(fig, filename='grouped-bar-top-evolution-before')
+	
 
 
  ###plot the ratio of editing of the top amenities edited by the import
@@ -679,7 +704,7 @@ def top_amenity_evolution_per_group(db, date_before,event_date,date_after, iMpor
 	data1 = [trace_before1, trace_before2, trace_before3]
 	layout1 = go.Layout(barmode='group')
 	fig1 = go.Figure(data=data1, layout=layout1)
-	py.plot(fig1, filename='grouped-bar-before')
+	
 
 
 
@@ -693,8 +718,7 @@ def top_amenity_evolution_per_group(db, date_before,event_date,date_after, iMpor
 	data2 = [trace_top12, trace_top22, trace_top32]
 	layout2 = go.Layout(barmode='group')
 	fig2 = go.Figure(data=data2, layout=layout2)
-	py.plot(fig2, filename='grouped-bar-top-evolution-after')
-
+	
 
  ###plot the ratio of editing of the top amenities edited by the import
 
@@ -705,7 +729,46 @@ def top_amenity_evolution_per_group(db, date_before,event_date,date_after, iMpor
 	data3 = [trace_after1, trace_after2, trace_after3]
 	layout3 = go.Layout(barmode='group')
 	fig3 = go.Figure(data=data3, layout=layout3)
-	py.plot(fig3, filename='grouped-bar-after')
+
+
+
+
+
+
+
+	# # SAVE LOCALLY
+	# py.image.save_as(fig, filename=dir_write_to['local']+'/top_amenity_focus_before'+date_convert.strftime('%Y-%m-%d')+'.png')
+
+	# # UPLOAD TO GOOGLE DRIVE
+	# filename = 'top_amenity_focus_before'+date_convert.strftime('%Y-%m-%d')+'.png'
+	# filelocation = dir_write_to['local']+'/top_amenity_focus_before'+date_convert.strftime('%Y-%m-%d')+'.png'
+	# googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'])
+
+
+	# # SAVE LOCALLY
+	# py.image.save_as(fig1, filename=dir_write_to['local']+'/top_amenity_focus_after'+date_convert.strftime('%Y-%m-%d')+'.png')
+
+	# # UPLOAD TO GOOGLE DRIVE
+	# filename = 'top_amenity_focus_after'+date_convert.strftime('%Y-%m-%d')+'.png'
+	# filelocation = dir_write_to['local']+'/top_amenity_focus_after'+date_convert.strftime('%Y-%m-%d')+'.png'
+	# googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'])
+
+	# # SAVE LOCALLY
+	# py.image.save_as(fig2, filename=dir_write_to['local']+'/top_import_amenity_before'+date_convert.strftime('%Y-%m-%d')+'.png')
+
+	# # UPLOAD TO GOOGLE DRIVE
+	# filename = 'top_import_amenity_before'+date_convert.strftime('%Y-%m-%d')+'.png'
+	# filelocation = dir_write_to['local']+'/top_import_amenity_before'+date_convert.strftime('%Y-%m-%d')+'.png'
+	# googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'])
+
+	# # SAVE LOCALLY
+	# py.image.save_as(fig3, filename=dir_write_to['local']+'/top_import_amenity_after'+date_convert.strftime('%Y-%m-%d')+'.png')
+
+	# # UPLOAD TO GOOGLE DRIVE
+	# filename = 'top_import_amenity_after'+date_convert.strftime('%Y-%m-%d')+'.png'
+	# filelocation = dir_write_to['local']+'/top_import_amenity_after'+date_convert.strftime('%Y-%m-%d')+'.png'
+	# googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'])
+
 
 
 
@@ -756,7 +819,7 @@ def get_amenities_top(db, iMport=[]):
 	
 
 
-	print(absol_dict)
+	return absol_dict
 
 
 

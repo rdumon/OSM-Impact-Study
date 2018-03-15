@@ -26,13 +26,13 @@ def analyse_import(db, googleDriveConnection, iMport, x = None, y = None, city =
 
 
 	# PRINT THE NODES OF THIS IMPORT
-	draw_heatMap(db, googleDriveConnection, iMport, x, y, city, import_dir)
+	#draw_heatMap(db, googleDriveConnection, iMport, x, y, city, import_dir)
 
 	# GET THE USER GROUPS
-	# groups = group_analyser(db, import_date-relativedelta(months=+6), import_date, x, y)
+	#groups = group_analyser(db, import_date-relativedelta(months=+6), import_date, x, y)
 
 	# # FOR EACH ANALYSIS WE WANT TO LOOK AT impact afer 1 week, 1 month, 3 month
-	# time_intervals = [import_date+relativedelta(weeks=+1), import_date+relativedelta(months=+1), import_date+relativedelta(months=+3)]
+	time_intervals = [import_date+relativedelta(weeks=+1), import_date+relativedelta(months=+1), import_date+relativedelta(months=+3)]
 	
 	# # # ABNORMAL RETURN OF CONTRIBUTIONS PER GROUP (based on expected return of 6 month before the import)
 	# # # 1 week, 1 month, 3 month
@@ -51,10 +51,10 @@ def analyse_import(db, googleDriveConnection, iMport, x = None, y = None, city =
 	# for x in range(0,3):
 	# 	impact_import_creationtomaintenance_ratio_abnormal_return(db, groups, date_before, event_date, date_after)
 
-	# # # AMENITY EVOLUTION PER GROUP
-	# # # 1 week, 1 month, 3 month
-	# for x in range(0,3):
-	top_amenity_evolution_per_group(db,googleDriveConnection, groups, date_before,event_date,date_after, iMport x=None, y=None)
+	# # AMENITY EVOLUTION PER GROUP
+	# # 1 week, 1 month, 3 month
+	for date_after in time_intervals:
+		top_amenity_evolution_per_group(db,googleDriveConnection, import_date-relativedelta(months=+6),import_date,date_after, iMport, x, y, import_dir)
 
 	# # SURVIVAL ANALISIS
 	# # run the survival analysis for the 	
