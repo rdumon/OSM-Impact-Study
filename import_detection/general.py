@@ -54,7 +54,7 @@ def analyse_import(db, googleDriveConnection, iMport, x = None, y = None, city =
 	# # # AMENITY EVOLUTION PER GROUP
 	# # # 1 week, 1 month, 3 month
 	# for x in range(0,3):
-	top_amenity_evolution_per_group(db,groups, iMport, date_before,event_date,date_after, x=None, y=None)
+	top_amenity_evolution_per_group(db,googleDriveConnection, groups, date_before,event_date,date_after, iMport x=None, y=None)
 
 	# # SURVIVAL ANALISIS
 	# # run the survival analysis for the 	
