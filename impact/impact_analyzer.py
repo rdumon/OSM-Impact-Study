@@ -9,10 +9,10 @@ import operator
 import numpy as np
 plotly.tools.set_credentials_file(username='aoussbai', api_key='uWPqQZwnbe5MgCrfqk3V')
 sys.path.insert(0, '../import_detection/')
-from detector import *
+from import_detection.detector import *
 
 sys.path.insert(0, '../lib/')
-from amenities import *
+from lib.amenities import *
 # from db import DB
 
 #LIST OF FUNCTIONS IN THIS FILE:

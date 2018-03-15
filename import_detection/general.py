@@ -3,7 +3,7 @@ import datetime
 from dateutil.relativedelta import relativedelta
 import os
 from impact.impact_analyzer import *
-from colorgraph import *
+from import_detection.colorgraph import *
 from googleDrive.googleAPI import *
 #-----------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------------
@@ -54,7 +54,7 @@ def analyse_import(db, googleDriveConnection, iMport, x = None, y = None, city =
 	# # # AMENITY EVOLUTION PER GROUP
 	# # # 1 week, 1 month, 3 month
 	# for x in range(0,3):
-	# 	top_amenity_evolution_per_group(db,groups, date_before,event_date,date_after, x=None, y=None)
+	top_amenity_evolution_per_group(db,groups, iMport, date_before,event_date,date_after, x=None, y=None)
 
 	# # SURVIVAL ANALISIS
 	# # run the survival analysis for the 	
