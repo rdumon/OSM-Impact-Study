@@ -10,6 +10,7 @@ from googleDrive.googleAPI import *
 from lib.db import DB
 
 
+
 # ======== Open Config =======
 with open('config.json') as json_file:
     config = json.load(json_file)
@@ -24,7 +25,20 @@ y = [516374000,1921000]
 # =============TEST==================
 
 # Name of City
-city = 'London'
+
+text = input("Please enter the name of the city you would like to analyse: ")
+
+city = str(text)
+dbname = "osm"+city.lower()
+
+with open("config.json", "r") as jsonFile:
+    data = json.load(jsonFile)
+
+tmp = data["DB"]["DB_NAME"]
+data["DBNAME"] = dbname
+
+with open("config.json", "w") as jsonFile:
+    json.dump(data, jsonFile)
 
 
 #WALTHROUGH OF MAIN SCRIPT
@@ -56,9 +70,9 @@ imports_normal_extra =[[[datetime.datetime(2009, 8, 17, 0, 0), 'NaPTAN'], [{u'bu
 print("\n-------------Starting Impact Analysis-------------\n")
 
 # Analyse Import by Import
-for iMport in imports_normal_extra:
-	analyse_import(db, googleDriveConnection, iMport, x, y, city, folder_info_of_city)
-	folder_info_of_city['google'] = google_folder_root_id
+# for iMport in imports_normal_extra:
+# 	analyse_import(db, googleDriveConnection, iMport, x, y, city, folder_info_of_city)
+# 	folder_info_of_city['google'] = google_folder_root_id
 
 
 
