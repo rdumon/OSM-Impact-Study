@@ -6,6 +6,7 @@ import os
 from impact.impact_analyzer import *
 from import_detection.detector import *
 from import_detection.general import *
+from googleDrive.googleAPI import *
 from lib.db import DB
 
 
@@ -28,25 +29,36 @@ city = 'London'
 
 #WALTHROUGH OF MAIN SCRIPT
 
+# CREATE A GOOGLE API CONNECTOR OBJECT
+googleDriveConnection =  googleAPI()
+
 # CREATE DIR TO WRITE FILES TO
-graph_dir = os.getcwd() + '/' + city
-if not os.path.exists(graph_dir):
-    os.makedirs(graph_dir)
+folder_info_of_city = {}
+
+# MAKE THE GOOGLE DRIVE FOLDER
+google_folder_root_id = googleDriveConnection.createFolder(city)
+folder_info_of_city['google'] = google_folder_root_id
+
+# MAKE THE LOCAL FOLDER
+folder_info_of_city['local'] = os.getcwd() + '/' + city
+if not os.path.exists(folder_info_of_city['local']):
+    os.makedirs(folder_info_of_city['local'])
 
 # LIST OF THE IMPORT DETECTED FOR THE CITY
-imports_normal = detectImport(db, city, x, y)
+# imports_normal = detectImport(db, city, x, y)
 #example [[datetime.datetime(2009, 8, 17, 0, 0), 'NaPTAN']]
 
 # EXTRA INFORMATION FOR EACH IMPORT
-imports_normal_extra = imports_report(db, imports_normal)
+# imports_normal_extra = imports_report(db, imports_normal)
 #example 
-# imports_normal_extra =[[[datetime.datetime(2009, 8, 17, 0, 0), 'NaPTAN'], [{u'bus_stop': 20100}], [{u'aircraft_fuel': 0}]]]
+imports_normal_extra =[[[datetime.datetime(2009, 8, 17, 0, 0), 'NaPTAN'], [{u'bus_stop': 20100}], [{u'aircraft_fuel': 0}]]]
 
 print("\n-------------Starting Impact Analysis-------------\n")
 
 # Analyse Import by Import
 for iMport in imports_normal_extra:
-	analyse_import(db, iMport, x, y, city, graph_dir)
+	analyse_import(db, googleDriveConnection, iMport, x, y, city, folder_info_of_city)
+	folder_info_of_city['google'] = google_folder_root_id
 
 
 

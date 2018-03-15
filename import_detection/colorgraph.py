@@ -3,6 +3,7 @@ import plotly
 import plotly.plotly as py
 from plotly.graph_objs import *
 import random
+from googleDrive.googleAPI import *
 plotly.tools.set_credentials_file(username='RomainDumon', api_key='EfFe07aVY131PpodoWqG')
 mapbox_access_token = 'pk.eyJ1Ijoib3NtcHJvamVjdDMwOTYiLCJhIjoiY2plb2ZpcTByMDFiYjMycXkwajE4d2Q2MiJ9.DhyGCvF6LCEgnjfgrWLVQg'
 
@@ -11,7 +12,7 @@ from lib.db import DB
 
 
 #Import info is the array expecting the [[datetime.datetime(2009, 8, 17, 0, 0), 'NaPTAN']] and the name of the city
-def draw_heatMap(db, importInfo = [], x=None, y=None, city = '', dir_write_to = ''):
+def draw_heatMap(db, googleDriveConnection, importInfo = [], x=None, y=None, city = '', dir_write_to = ''):
 
 	where_clause = ''
 	if x!=None and y!=None and len(x) == 2 and len(y) == 2:
@@ -67,4 +68,10 @@ def draw_heatMap(db, importInfo = [], x=None, y=None, city = '', dir_write_to = 
 
 	fig = dict(data=data, layout=layout)
 	# py.plot(fig, filename='Multiple Mapbox')
-	py.image.save_as(fig, filename=dir_write_to+'/import-'+city+'-'+date_convert.strftime('%Y-%m-%d')+'.png')
+	# SAVE LOCALLY
+	py.image.save_as(fig, filename=dir_write_to['local']+'/import-'+city+'-'+date_convert.strftime('%Y-%m-%d')+'.png')
+
+	# UPLOAD TO GOOGLE DRIVE
+	filename = 'import-'+city+'-'+date_convert.strftime('%Y-%m-%d')+'.png'
+	filelocation = dir_write_to['local']+'/import-'+city+'-'+date_convert.strftime('%Y-%m-%d')+'.png'
+	googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'])
