@@ -64,6 +64,7 @@ google_folder_root_id = googleDriveConnection.createFolder(city)
 folder_info_of_city['google'] = google_folder_root_id
 
 # # MAKE THE LOCAL FOLDER
+local_folder_root = os.getcwd()
 folder_info_of_city['local'] = os.getcwd() + '/' + city
 if not os.path.exists(folder_info_of_city['local']):
     os.makedirs(folder_info_of_city['local'])
@@ -73,13 +74,14 @@ imports_normal = detectImport(db, city, x, y, folder_info_of_city, googleDriveCo
 #example [[datetime.datetime(2009, 8, 17, 0, 0), 'NaPTAN']]
 
 # EXTRA INFORMATION FOR EACH IMPORT
-# imports_normal_extra = imports_report(db, imports_normal)
+imports_normal_extra = imports_report(db, imports_normal)
 #example
 # imports_normal_extra =[[[datetime.datetime(2009, 8, 17, 0, 0), 'NaPTAN'], [{u'bus_stop': 20100}], [{u'aircraft_fuel': 0}]]]
 
-print("\n-------------Starting Impact Analysis-------------\n")
+print("\n-------------Starting Impacxwt Analysis-------------\n")
 
 # Analyse Import by Import
-# for iMport in imports_normal_extra:
-# 	analyse_import(db, googleDriveConnection, iMport, x, y, city, folder_info_of_city)
-# 	folder_info_of_city['google'] = google_folder_root_id
+for iMport in imports_normal_extra:
+    analyse_import(db, googleDriveConnection, iMport, x, y, city, folder_info_of_city)
+    folder_info_of_city['google'] = google_folder_root_id
+    folder_info_of_city['local'] = local_folder_root
