@@ -10,6 +10,7 @@ from googleDrive.googleAPI import *
 from lib.db import DB
 
 
+
 # ======== Open Config =======
 with open('config.json') as json_file:
     config = json.load(json_file)
@@ -24,7 +25,20 @@ y = [516374000,1921000]
 # =============TEST==================
 
 # Name of City
-city = 'London'
+
+# text = input("Please enter the name of the city you would like to analyse: ")
+
+city = "postgres" #str(text)
+#dbname = "osm"+city.lower()
+
+# with open("config.json", "r") as jsonFile:
+#     data = json.load(jsonFile)
+
+# tmp = data["DB"]["DB_NAME"]
+# data["DB"]["DB_NAME"] = dbname
+
+# with open("config.json", "w") as jsonFile:
+#     json.dump(data, jsonFile)
 
 
 #WALTHROUGH OF MAIN SCRIPT
