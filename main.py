@@ -17,8 +17,8 @@ db = DB(config['DB'])
 # Detect import
 # x = [501355000,298938000]
 # y = [506677000,311696000]
-x = [513694000,-4465000]
-y = [516374000,1921000]
+x = [513694000,-4465000]  #en bas a gauche
+y = [516374000,1921000] #en haut a droite
 print(detectImport(db,'London',x,y))
 # detectWaysImport(db,'London',x,y)
 
