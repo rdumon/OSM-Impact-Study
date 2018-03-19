@@ -4,7 +4,6 @@ import plotly.plotly as py
 from plotly.graph_objs import *
 import random
 from googleDrive.googleAPI import *
-plotly.tools.set_credentials_file(username='RomainDumon', api_key='EfFe07aVY131PpodoWqG')
 mapbox_access_token = 'pk.eyJ1Ijoib3NtcHJvamVjdDMwOTYiLCJhIjoiY2plb2ZpcTByMDFiYjMycXkwajE4d2Q2MiJ9.DhyGCvF6LCEgnjfgrWLVQg'
 
 sys.path.insert(0, '../lib/')
@@ -21,7 +20,7 @@ def draw_heatMap(db, googleDriveConnection, importInfo = [], x=None, y=None, cit
 	middle_lat = (x[0] + (abs(y[0]-x[0])/2.0))/10000000.0
 	middle_long = (x[1] + (abs(y[1]-x[1])/2.0))/10000000.0
 
-	user_name = importInfo[0][1] 
+	user_name = importInfo[0][1]
 	date_convert = importInfo[0][0]
 
 	query = "SELECT latitude, longitude  FROM nodes WHERE created_at > '" + date_convert.strftime('%Y-%m-%d') + " 00:00:00' AND created_at < '" + date_convert.strftime('%Y-%m-%d') + " 24:00:00' AND user_name = '"+user_name+"' AND "+where_clause+" GROUP BY latitude, longitude"
@@ -46,7 +45,7 @@ def draw_heatMap(db, googleDriveConnection, importInfo = [], x=None, y=None, cit
 	            size=3,
 	            color='rgb('+str(random.randint(0, 155))+','+str(random.randint(0, 155))+','+str(random.randint(0, 155))+')',
 	        )
-	        
+
 	    )
 	])
 	layout = Layout(
@@ -69,9 +68,34 @@ def draw_heatMap(db, googleDriveConnection, importInfo = [], x=None, y=None, cit
 	fig = dict(data=data, layout=layout)
 	# py.plot(fig, filename='Multiple Mapbox')
 	# SAVE LOCALLY
-	py.image.save_as(fig, filename=dir_write_to['local']+'/import-'+city+'-'+date_convert.strftime('%Y-%m-%d')+'.png')
+	setPlotlyCredentials()
+    retry = True
+    while retry:
+        try:
+            retry = False
+        	py.image.save_as(fig, filename=dir_write_to['local']+'/import-'+city+'-'+date_convert.strftime('%Y-%m-%d')+'.png')
+        except (Exception, plotly.exceptions.PlotlyRequestError) as error:
+            print('Plotly limit error... Don\'t care!')
+            retry = True
+            setPlotlyCredentials()
 
 	# UPLOAD TO GOOGLE DRIVE
 	filename = 'import-'+city+'-'+date_convert.strftime('%Y-%m-%d')+'.png'
 	filelocation = dir_write_to['local']+'/import-'+city+'-'+date_convert.strftime('%Y-%m-%d')+'.png'
 	googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'])
+
+
+# =============== Avoid plotly limitation ===============
+plotCred = [
+    ['RomainDumon','cJVtOQ4pZHAaQcBeTULV'],
+    ['aoussbai','uWPqQZwnbe5MgCrfqk3V'],
+    ['JhumanJ','xUuKkx6qmi5j3E75OpgT'],
+    ['charlydes','6ufsK3cLlAp4DUzohtm8']
+]
+currentPlotlyAccount = 0
+
+def setPlotlyCredentials():
+    global currentPlotlyAccount, plotCred
+
+    plotly.tools.set_credentials_file(username=plotCred[currentPlotlyAccount][0], api_key=plotCred[currentPlotlyAccount][1])
+    currentPlotlyAccount += 1

@@ -9,8 +9,6 @@ from import_detection.general import *
 from googleDrive.googleAPI import *
 from lib.db import DB
 
-
-
 # ======== Open Config =======
 # with open('config.json') as json_file:
 #     config = json.load(json_file)
@@ -21,6 +19,8 @@ from lib.db import DB
 # # Detect import
 x = [437240180,74091370]
 y = [437516580,74390270]
+
+
 
 # =============TEST==================
 

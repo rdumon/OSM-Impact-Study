@@ -7,7 +7,6 @@ import plotly.plotly as py
 import plotly.graph_objs as go
 import operator
 import numpy as np
-plotly.tools.set_credentials_file(username='aoussbai', api_key='uWPqQZwnbe5MgCrfqk3V')
 sys.path.insert(0, '../import_detection/')
 from import_detection.detector import *
 
@@ -140,7 +139,16 @@ def abnormal_return_for_group(db, googleDriveConnection, groups, date_before, ev
 
 	# py.plot(data,filename='box-plots osm London month')
 	filelocation = dir_write_to['local']+'/abnormalReturnContrib'+str(diff_actual_user)+'weekAfter-'+date_after.strftime('%Y-%m-%d')+'.png'
-	py.image.save_as(fig,filename = filelocation)
+	setPlotlyCredentials()
+    retry = True
+    while retry:
+        try:
+            retry = False
+			py.image.save_as(fig,filename = filelocation)
+        except (Exception, plotly.exceptions.PlotlyRequestError) as error:
+            print('Plotly limit error... Don\'t care!')
+            retry = True
+            setPlotlyCredentials()
 
 	# UPLOAD TO GOOGLE DRIVE
 	filename = 'abnormalReturnContrib-'+str(diff_actual_user)+'weekAfter.png'
@@ -219,7 +227,16 @@ def contribution_types_gobal_analysis(db, googleDriveConnection, date_before,eve
 
 	# py.plot(data,filename='box-plots osm London month')
 	filelocation = dir_write_to['local']+'/evolutionMaintenance.png'
-	py.image.save_as(fig,filename = filelocation)
+	setPlotlyCredentials()
+    retry = True
+    while retry:
+        try:
+            retry = False
+			py.image.save_as(fig,filename = filelocation)
+        except (Exception, plotly.exceptions.PlotlyRequestError) as error:
+            print('Plotly limit error... Don\'t care!')
+            retry = True
+            setPlotlyCredentials()
 
 	# UPLOAD TO GOOGLE DRIVE
 	filename = 'evolutionMaintenance.png'
@@ -236,7 +253,7 @@ def impact_import_creationtomaintenance_ratio(db, groups, date_before, event_dat
 	event_date_convert = datetime.strptime(event_date,'%Y%m%d')
 	date_before_convert = datetime.strptime(date_before,'%Y%m%d')
 
-	#dictionaries recording the creates and total contribs of each user 
+	#dictionaries recording the creates and total contribs of each user
 	dict_user_total_contribs = {}
 	dict_user_creates = {}
 
@@ -282,7 +299,16 @@ def impact_import_creationtomaintenance_ratio(db, groups, date_before, event_dat
 	)
 
 	fig = go.Figure(data=data, layout=layout)
-	py.plot(fig, filename='Maintenance vs Creations ' + Graph_title)
+	setPlotlyCredentials()
+    retry = True
+    while retry:
+        try:
+            retry = False
+			py.plot(fig, filename='Maintenance vs Creations ' + Graph_title)
+        except (Exception, plotly.exceptions.PlotlyRequestError) as error:
+            print('Plotly limit error... Don\'t care!')
+            retry = True
+            setPlotlyCredentials()
 
 
 #=================================================================================================
@@ -296,7 +322,7 @@ def impact_import_creationtomaintenance_ratio_abnormal_return(db, googleDriveCon
 	#The number of weeks between event date and the date after the event
 	diff_actual_user = (date_after - event_date).days /7
 
-	#dictionaries recording the creates and total contribs of each user 
+	#dictionaries recording the creates and total contribs of each user
 	dict_user_total_contribs = {}
 	dict_user_creates = {}
 
@@ -316,7 +342,7 @@ def impact_import_creationtomaintenance_ratio_abnormal_return(db, googleDriveCon
 	for k, v in dict_user_total_contribs.items():
 		dict_user_expected_ratio[k] = dict_user_creates.get(k,decimal.Decimal(0.0)) / dict_user_total_contribs[k] / diff_expected_user
 
-	#actual ratio per user for the period given as input 
+	#actual ratio per user for the period given as input
 	contribs_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at <= '" + date_after.strftime('%Y-%m-%d') + "' AND created_at > '" + event_date.strftime('%Y-%m-%d')+" 24:00:00' GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at <= '" + date_after.strftime('%Y-%m-%d') + "' AND created_at > '" + event_date.strftime('%Y-%m-%d') + " 24:00:00' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at <= '" + date_after.strftime('%Y-%m-%d') + "' AND created_at > '" + event_date.strftime('%Y-%m-%d') + " 24:00:00' GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions) "])
 
 	for a in contribs_per_user:
@@ -387,13 +413,22 @@ def impact_import_creationtomaintenance_ratio_abnormal_return(db, googleDriveCon
 
 	# py.plot(data,filename='box-plots osm London month')
 	filelocation = dir_write_to['local']+'/abnormalReturnMaintenance'+str(diff_actual_user)+'weeksAfer.png'
-	py.image.save_as(fig,filename = filelocation)
+	setPlotlyCredentials()
+    retry = True
+    while retry:
+        try:
+            retry = False
+			py.image.save_as(fig,filename = filelocation)
+        except (Exception, plotly.exceptions.PlotlyRequestError) as error:
+            print('Plotly limit error... Don\'t care!')
+            retry = True
+            setPlotlyCredentials()
 
 	# UPLOAD TO GOOGLE DRIVE
 	filename = 'abnormalReturnMaintenance'+str(diff_actual_user)+'.png'
 	googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'])
 
-	    
+
 
 #=========================================================================================#
 #===Looking at evolution of the most edited amenity types per user for a certain period===#
@@ -401,7 +436,7 @@ def impact_import_creationtomaintenance_ratio_abnormal_return(db, googleDriveCon
 def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_date,date_after, iMport, x=None, y=None, import_dir =''):
 
 	#Dates computations
-	
+
 
 	where_clause = ' '
 	if x!=None and y!=None and len(x) == 2 and len(y) == 2:
@@ -424,29 +459,29 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 
 
 
-	
-
-	
-	
 
 
 
 
 
-    
-	
 
-	refDict = build_dictionary_of_amenities()  
+
+
+
+
+
+
+	refDict = build_dictionary_of_amenities()
 	forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w", "name", "1", "4", "unclassified", "-1"}
 	absol_dict = get_amenities_top(db, iMport)
 	groups = group_analyser(db, date_before, event_date, x, y)
-	
+
 
 	top1 = list(absol_dict)[2]
 	top2 = list(absol_dict)[1]
 	top3 = list(absol_dict)[0]
 	dict_top = {top1, top2, top3}
-	
+
 
 
 #=====================Before the import====================================
@@ -457,7 +492,7 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 	dict_top3={}
 	dict_top4={}
 	dict_top5={}
-	
+
 	dict1 = {}
 	dict2 = {}
 	dict3 = {}
@@ -469,7 +504,7 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 	dict_top32={}
 	dict_top42={}
 	dict_top52={}
-	
+
 	dict12 = {}
 	dict22 = {}
 	dict32 = {}
@@ -481,72 +516,72 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 		if fields[1] in groups[0]:
 			for tag in fields[0]:
 					for data in tag:
-						for detail in data: 
+						for detail in data:
 							if data[detail] in dict_top and data[detail] not in forbiddenEntries:
 								if data[detail] in dict_top1:
 									dict_top1[data[detail]]+=1
 								else:
 									dict_top1[data[detail]] =1
-							if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-								if data[detail] in dict1: 
+							if data[detail] in refDict and data[detail] not in forbiddenEntries:
+								if data[detail] in dict1:
 									dict1[data[detail]]+=1
-								else: 
+								else:
 									dict1[data[detail]] =1
 		if fields[1] in groups[1]:
 			for tag in fields[0]:
 					for data in tag:
-						for detail in data: 
+						for detail in data:
 							if data[detail] in dict_top and data[detail] not in forbiddenEntries:
 								if data[detail] in dict_top2:
 									dict_top2[data[detail]]+=1
 								else:
 									dict_top2[data[detail]] =1
-							if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-								if data[detail] in dict2: 
+							if data[detail] in refDict and data[detail] not in forbiddenEntries:
+								if data[detail] in dict2:
 									dict2[data[detail]]+=1
-								else: 
+								else:
 									dict2[data[detail]] =1
 		if fields[1] in groups[2]:
 			for tag in fields[0]:
 					for data in tag:
-						for detail in data: 
+						for detail in data:
 							if data[detail] in dict_top and data[detail] not in forbiddenEntries:
 								if data[detail] in dict_top3:
 									dict_top3[data[detail]]+=1
 								else:
 									dict_top3[data[detail]] =1
-							if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-								if data[detail] in dict3: 
+							if data[detail] in refDict and data[detail] not in forbiddenEntries:
+								if data[detail] in dict3:
 									dict3[data[detail]]+=1
-								else: 
+								else:
 									dict3[data[detail]] =1
 		if fields[1] in groups[3]:
 			for tag in fields[0]:
 					for data in tag:
-						for detail in data: 
+						for detail in data:
 							if data[detail] in dict_top and data[detail] not in forbiddenEntries:
 								if data[detail] in dict_top4:
 									dict_top4[data[detail]]+=1
 								else:
 									dict_top4[data[detail]] =1
-							if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-								if data[detail] in dict4: 
+							if data[detail] in refDict and data[detail] not in forbiddenEntries:
+								if data[detail] in dict4:
 									dict4[data[detail]]+=1
-								else: 
+								else:
 									dict4[data[detail]] =1
 		if fields[1] in groups[4]:
 			for tag in fields[0]:
 					for data in tag:
-						for detail in data: 
+						for detail in data:
 							if data[detail] in dict_top and data[detail] not in forbiddenEntries:
 								if data[detail] in dict_top5:
 									dict_top5[data[detail]]+=1
 								else:
 									dict_top5[data[detail]] =1
-							if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-								if data[detail] in dict5: 
+							if data[detail] in refDict and data[detail] not in forbiddenEntries:
+								if data[detail] in dict5:
 									dict5[data[detail]]+=1
-								else: 
+								else:
 									dict5[data[detail]] =1
 
 
@@ -555,72 +590,72 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 			if fields[1] in groups[0]:
 				for tag in fields[0]:
 						for data in tag:
-							for detail in data: 
+							for detail in data:
 								if data[detail] in dict_top and data[detail] not in forbiddenEntries:
 									if data[detail] in dict_top12:
 										dict_top12[data[detail]]+=1
 									else:
 										dict_top12[data[detail]] =1
-								if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-									if data[detail] in dict12: 
+								if data[detail] in refDict and data[detail] not in forbiddenEntries:
+									if data[detail] in dict12:
 										dict12[data[detail]]+=1
-									else: 
+									else:
 										dict12[data[detail]] =1
 			if fields[1] in groups[1]:
 				for tag in fields[0]:
 						for data in tag:
-							for detail in data: 
+							for detail in data:
 								if data[detail] in dict_top and data[detail] not in forbiddenEntries:
 									if data[detail] in dict_top22:
 										dict_top22[data[detail]]+=1
 									else:
 										dict_top22[data[detail]] =1
-								if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-									if data[detail] in dict22: 
+								if data[detail] in refDict and data[detail] not in forbiddenEntries:
+									if data[detail] in dict22:
 										dict22[data[detail]]+=1
-									else: 
+									else:
 										dict22[data[detail]] =1
 			if fields[1] in groups[2]:
 				for tag in fields[0]:
 						for data in tag:
-							for detail in data: 
+							for detail in data:
 								if data[detail] in dict_top and data[detail] not in forbiddenEntries:
 									if data[detail] in dict_top32:
 										dict_top32[data[detail]]+=1
 									else:
 										dict_top32[data[detail]] =1
-								if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-									if data[detail] in dict32: 
+								if data[detail] in refDict and data[detail] not in forbiddenEntries:
+									if data[detail] in dict32:
 										dict32[data[detail]]+=1
-									else: 
+									else:
 										dict32[data[detail]] =1
 			if fields[1] in groups[3]:
 				for tag in fields[0]:
 						for data in tag:
-							for detail in data: 
+							for detail in data:
 								if data[detail] in dict_top and data[detail] not in forbiddenEntries:
 									if data[detail] in dict_top42:
 										dict_top42[data[detail]]+=1
 									else:
 										dict_top42[data[detail]] =1
-								if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-									if data[detail] in dict42: 
+								if data[detail] in refDict and data[detail] not in forbiddenEntries:
+									if data[detail] in dict42:
 										dict42[data[detail]]+=1
-									else: 
+									else:
 										dict42[data[detail]] =1
 			if fields[1] in groups[4]:
 				for tag in fields[0]:
 						for data in tag:
-							for detail in data: 
+							for detail in data:
 								if data[detail] in dict_top and data[detail] not in forbiddenEntries:
 									if data[detail] in dict_top52:
 										dict_top52[data[detail]]+=1
 									else:
 										dict_top52[data[detail]] =1
-								if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-									if data[detail] in dict52: 
+								if data[detail] in refDict and data[detail] not in forbiddenEntries:
+									if data[detail] in dict52:
 										dict52[data[detail]]+=1
-									else: 
+									else:
 										dict52[data[detail]] =1
 
 
@@ -675,7 +710,7 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 		total4=1
 	if total5 ==0:
 		total5=1
-	
+
 
 
 	for i in range (0, len(sorted_dict12)-1):
@@ -699,7 +734,7 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 		total42=1
 	if total52 ==0:
 		total52=1
-	
+
 
 
 	for i in dict_top:
@@ -723,7 +758,7 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 			dict_top42[i]=0
 		if i not in dict_top52:
 			dict_top52[i]=0
-	
+
 
 
 
@@ -739,7 +774,7 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 	data = [trace_top1, trace_top2, trace_top3]
 	layout = go.Layout(barmode='group')
 	fig = go.Figure(data=data, layout=layout)
-	
+
 
 
  ###plot the ratio of editing of the top amenities edited by the import
@@ -753,7 +788,7 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 	data1 = [trace_before1, trace_before2, trace_before3]
 	layout1 = go.Layout(barmode='group')
 	fig1 = go.Figure(data=data1, layout=layout1)
-	
+
 
 
 
@@ -767,7 +802,7 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 	data2 = [trace_top12, trace_top22, trace_top32]
 	layout2 = go.Layout(barmode='group')
 	fig2 = go.Figure(data=data2, layout=layout2)
-	
+
 
  ###plot the ratio of editing of the top amenities edited by the import
 
@@ -850,7 +885,7 @@ def get_amenities_top(db, iMport=[]):
 	dict_top = {}
 
 	for i in top:
-		for elements in i: 
+		for elements in i:
 			if elements not in dict_top and elements not in forbiddenEntries:
 				dict_top[elements] = i[elements]
 
@@ -865,7 +900,7 @@ def get_amenities_top(db, iMport=[]):
 
 	absol_dict = dict(sorted(dict_top.items(), key=operator.itemgetter(1), reverse=True)[:3])
 
-	
+
 
 
 	return absol_dict
@@ -994,7 +1029,7 @@ def trim_95Perc_rule(data):
 
 	# print("Disregarded Data Points: ")
 	# print(false_positive)
-			
+
 	return data
 
 
@@ -1005,19 +1040,18 @@ def find_range(data):
 
 	return [np.min(data),np.max(data)]
 
-	
 
+# =============== Avoid plotly limitation ===============
+plotCred = [
+    ['RomainDumon','cJVtOQ4pZHAaQcBeTULV'],
+    ['aoussbai','uWPqQZwnbe5MgCrfqk3V'],
+    ['JhumanJ','xUuKkx6qmi5j3E75OpgT'],
+    ['charlydes','6ufsK3cLlAp4DUzohtm8']
+]
+currentPlotlyAccount = 0
 
+def setPlotlyCredentials():
+    global currentPlotlyAccount, plotCred
 
-
-
-
-
-
-
-
-
-
-
-
-
+    plotly.tools.set_credentials_file(username=plotCred[currentPlotlyAccount][0], api_key=plotCred[currentPlotlyAccount][1])
+    currentPlotlyAccount += 1
