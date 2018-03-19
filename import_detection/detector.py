@@ -1,13 +1,22 @@
 import sys
 import json
-
-sys.path.insert(0, '/../')
-
-from operator import itemgetter
-from datetime import datetime
-
 import plotly.plotly as py
 import plotly.graph_objs as go
+import operator
+
+from operator import itemgetter
+import datetime
+from lib.amenities import *
+
+#LIST OF FUNCTIONS IN THIS FILE:
+
+# def detectImport(db,cityName='',x=None,y=None):
+# WAYS/NODES
+
+# def find_contribution_type_of_import(db, iMport = [], table ="")
+# you decide
+
+
 
 # ========== Code ================
 
@@ -15,7 +24,7 @@ import plotly.graph_objs as go
 # X is the lower left point
 # Y is the upper right point
 
-def detectImport(db,cityName='',x=None,y=None):
+def detectImport(db,cityName='', x = None , y = None):
 
     # If there is a location restriction
     where_clause = ''
@@ -48,7 +57,7 @@ def detectImport(db,cityName='',x=None,y=None):
                 daily_user = day_contrib[1]
         else:
             daily_best_contrib['value'].append(daily_max)
-            daily_best_contrib['date'].append(datetime.strptime(daily_date, "%Y%m%d"))
+            daily_best_contrib['date'].append(datetime.datetime.strptime(daily_date, "%Y%m%d"))
             daily_best_contrib['user'].append(daily_user)
             daily_max = day_contrib[2]
             daily_user = day_contrib[1]
@@ -81,7 +90,7 @@ def detectImport(db,cityName='',x=None,y=None):
                 current_max = item[2]
                 current_max_user = item[1]
         else:
-            daily_best_new_user_contrib['date'].append(datetime.strptime(current_date, "%Y%m%d"))
+            daily_best_new_user_contrib['date'].append(datetime.datetime.strptime(current_date, "%Y%m%d"))
             daily_best_new_user_contrib['value'].append(current_max)
             daily_best_new_user_contrib['user'].append(current_max_user)
 
@@ -128,7 +137,7 @@ def detectImport(db,cityName='',x=None,y=None):
 
     data_graph = [trace0, trace1,trace2,trace3,trace4]
 
-    py.plot(data_graph, filename=('Import Detection '+cityName))
+    # py.plot(data_graph, filename=('Import Detection '+cityName))
 
     detected_imports = []
     for i in range(0,len(daily_best_contrib['value'])):
@@ -181,7 +190,7 @@ def detectWaysImport(db,cityName='',x=None,y=None):
                 daily_user = day_contrib[1]
         else:
             daily_best_contrib['value'].append(daily_max)
-            daily_best_contrib['date'].append(datetime.strptime(daily_date, "%Y%m%d"))
+            daily_best_contrib['date'].append(datetime.datetime.strptime(daily_date, "%Y%m%d"))
             daily_best_contrib['user'].append(daily_user)
             daily_max = day_contrib[2]
             daily_user = day_contrib[1]
@@ -213,7 +222,7 @@ def detectWaysImport(db,cityName='',x=None,y=None):
                 current_max = item[2]
                 current_max_user = item[1]
         else:
-            daily_best_new_user_contrib['date'].append(datetime.strptime(current_date, "%Y%m%d"))
+            daily_best_new_user_contrib['date'].append(datetime.datetime.strptime(current_date, "%Y%m%d"))
             daily_best_new_user_contrib['value'].append(current_max)
             daily_best_new_user_contrib['user'].append(current_max_user)
 
@@ -251,3 +260,76 @@ def detectWaysImport(db,cityName='',x=None,y=None):
     data_graph = [trace0, trace1,trace2,trace3]
 
     py.plot(data_graph, filename=('Import Ways Detection '+cityName))
+
+
+
+def find_contribution_type_of_import(db, iMport = [], table =""):
+
+    user_name = iMport[1] 
+    date_convert = iMport[0]
+
+    query = "SELECT json_agg(tags) as tags, id FROM "+table+" WHERE created_at > '" + date_convert.strftime('%Y-%m-%d') + " 00:00:00' AND created_at < '" + date_convert.strftime('%Y-%m-%d') + " 24:00:00' AND user_name = '"+user_name+"' GROUP BY id  "
+
+    #do not need to worry about version number (we assume that import is only creation or one time edits to change twice a node) List of tuples
+    amenity_type_of_all_nodes_of_import = db.execute([query])
+
+    dict_amenities_right_fields = build_dictionary_of_amenities()
+    dict_amenities_left_fields = build_dictionary_of_amenities()
+
+    unidentified = 0
+
+    for tuple in amenity_type_of_all_nodes_of_import:
+        for json in tuple[0]:
+            for item in json:
+                try:
+                    dict_amenities_right_fields[json[item].lower()] += 1
+                except KeyError:
+                    unidentified += 1
+                    continue
+
+    for tuple in amenity_type_of_all_nodes_of_import:
+        for json in tuple[0]:
+            for item in json:
+                try:
+                    dict_amenities_left_fields[item.lower()] += 1
+                except KeyError:
+                    unidentified += 1
+                    continue
+
+    list_top = []
+    list_top.append(dict(sorted(list(dict_amenities_right_fields.items()), key=operator.itemgetter(1), reverse=True)[:5]))
+    list_top.append(dict(sorted(list(dict_amenities_left_fields.items()), key=operator.itemgetter(1), reverse=True)[:5]))
+
+    # print("Top 5 for the left fields of the tags:")
+    # print(dict(sorted(list(dict_amenities_right_fields.items()), key=operator.itemgetter(1), reverse=True)[:3]))
+    # print("Top 5 for the right fields of the tags:")
+    # print(dict(sorted(list(dict_amenities_left_fields.items()), key=operator.itemgetter(1), reverse=True)[:3]))
+    # print("Unidentified fields were ignored : " + str(unidentified))
+
+    return list_top
+
+def imports_report(db, imports= []):
+
+    imports_information = []
+    array = []
+    for iMport in imports:
+        array.append(iMport)
+        # print("#################################################################################################")
+        # print("The import happened in "+ iMport[0].strftime('%Y-%m-%d') + " and was done by user : "+ iMport[1])
+        # print("Analysing its nodes: ".upper())
+        array.append(find_contribution_type_of_import(db, iMport, "nodes"))
+        # print("Analysing its ways: ".upper())
+        array.append(find_contribution_type_of_import(db, iMport, "ways"))
+        imports_information.append(array)
+        array = []
+    return imports_information
+    
+
+
+
+
+
+
+
+
+
