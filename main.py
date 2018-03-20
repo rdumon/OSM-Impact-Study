@@ -9,14 +9,11 @@ from import_detection.general import *
 from googleDrive.googleAPI import *
 from lib.db import DB
 
-<<<<<<< HEAD
+
 # =======DO NOT CHANGE ============
 # ====id of the folder files are shared on Drive
 shared_drive_id = '1jS9wv4965g5eKFdKJ7RrW-yHHXkv9OqH'
 
-
-=======
->>>>>>> fadd8dddd2f61b50e5af1c784bfb661bc7ebc3a7
 # ======== Open Config =======
 # with open('config.json') as json_file:
 #     config = json.load(json_file)
