@@ -29,8 +29,10 @@ def analyse_import(db, googleDriveConnection, iMport, x = None, y = None, city =
 	#draw_heatMap(db, googleDriveConnection, iMport, x, y, city, import_dir)
 
 	# GET THE USER GROUPS
-	groups = group_analyser(db, import_date-relativedelta(months=+6), import_date, x, y)
+	groups = group_analyserv2(db, import_date-relativedelta(months=+6), import_date, x, y)
 
+	print(groups)
+	sys.exit(-1)
 	# # FOR EACH ANALYSIS WE WANT TO LOOK AT impact afer 1 week, 1 month, 3 month
 	time_intervals = [import_date+relativedelta(weeks=+1), import_date+relativedelta(months=+1), import_date+relativedelta(months=+3)]
 

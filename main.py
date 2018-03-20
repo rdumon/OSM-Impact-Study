@@ -74,13 +74,13 @@ if not os.path.exists(folder_info_of_city['local']):
     os.makedirs(folder_info_of_city['local'])
 
 # LIST OF THE IMPORT DETECTED FOR THE CITY
-# imports_normal = detectImport(db, city, x, y, folder_info_of_city, googleDriveConnection ,detectionLevel)
-imports_normal = [[datetime.datetime(2009, 8, 17, 0, 0), 'NaPTAN']]
+imports_normal = detectImport(db, city, x, y, folder_info_of_city, googleDriveConnection ,detectionLevel)
+# imports_normal = [[datetime.datetime(2009, 8, 17, 0, 0), 'NaPTAN']]
 
 # EXTRA INFORMATION FOR EACH IMPORT
 imports_normal_extra = imports_report(db, googleDriveConnection, imports_normal, folder_info_of_city)
 #example
-imports_normal_extra =[[[datetime.datetime(2009, 8, 17, 0, 0), 'NaPTAN'], [{u'bus_stop': 20100}], [{u'aircraft_fuel': 0}]]]
+# imports_normal_extra =[[[datetime.datetime(2009, 8, 17, 0, 0), 'NaPTAN'], [{u'bus_stop': 20100}], [{u'aircraft_fuel': 0}]]]
 
 print("\n-------------Starting Impacxwt Analysis-------------\n")
 

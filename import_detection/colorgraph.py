@@ -95,8 +95,13 @@ plotCred = [
 ]
 currentPlotlyAccount = 0
 
+
 def setPlotlyCredentials():
     global currentPlotlyAccount, plotCred
 
+    print("Using: "+str(plotCred[currentPlotlyAccount]))
     plotly.tools.set_credentials_file(username=plotCred[currentPlotlyAccount][0], api_key=plotCred[currentPlotlyAccount][1])
     currentPlotlyAccount += 1
+
+    if(len(plotCred) == currentPlotlyAccount):
+        currentPlotlyAccount = 0
