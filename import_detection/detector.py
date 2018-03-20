@@ -202,7 +202,7 @@ def find_contribution_type_of_import(db, iMport = [], table =""):
 
     return list_top
 
-def imports_report(db, imports= []):
+def imports_report(db, googleDriveConnection, imports= [], dir_write_to = ''):
 
     imports_information = []
     array = []
@@ -216,4 +216,31 @@ def imports_report(db, imports= []):
         array.append(find_contribution_type_of_import(db, iMport, "ways"))
         imports_information.append(array)
         array = []
+
+    # Create a JSON out of this data and Push it to Drive
+    # ==== SET UP FOR JSON
+    filename = "importsInfo.json"
+    filelocation = dir_write_to['local']+"/"+filename
+
+    # Change to JSON format
+    json_info = {}
+    import_counter = 0
+    for iMport in imports_information:
+        import_counter += 1
+        json_info['import'+str(import_counter)] = []
+        for array in iMport:
+            for element in array:
+                if isinstance(element, datetime.datetime):
+                    json_info['import'+str(import_counter)].append(element.strftime("%Y-%m-%d"))
+                else:
+                    json_info['import'+str(import_counter)].append(element)
+
+    #====MAKE JSON======
+    with open(filelocation, "w") as f:
+        json.dump(json_info, f)
+
+    # UPLOAD TO GOOGLE DRIVE
+    googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'], 'text/json')
+
+
     return imports_information

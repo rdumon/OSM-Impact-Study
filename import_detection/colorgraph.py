@@ -4,7 +4,7 @@ import plotly.plotly as py
 from plotly.graph_objs import *
 import random
 from googleDrive.googleAPI import *
-plotly.tools.set_credentials_file(username='RomainDumon', api_key='EfFe07aVY131PpodoWqG')
+plotly.tools.set_credentials_file(username='RomainDumon', api_key='cJVtOQ4pZHAaQcBeTULV')
 mapbox_access_token = 'pk.eyJ1Ijoib3NtcHJvamVjdDMwOTYiLCJhIjoiY2plb2ZpcTByMDFiYjMycXkwajE4d2Q2MiJ9.DhyGCvF6LCEgnjfgrWLVQg'
 
 sys.path.insert(0, '../lib/')

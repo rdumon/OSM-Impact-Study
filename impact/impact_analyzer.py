@@ -7,7 +7,7 @@ import plotly.plotly as py
 import plotly.graph_objs as go
 import operator
 import numpy as np
-plotly.tools.set_credentials_file(username='aoussbai', api_key='uWPqQZwnbe5MgCrfqk3V')
+plotly.tools.set_credentials_file(username='RomainDumon', api_key='cJVtOQ4pZHAaQcBeTULV')
 sys.path.insert(0, '../import_detection/')
 from import_detection.detector import *
 
@@ -62,10 +62,6 @@ def abnormal_return_for_group(db, googleDriveConnection, groups, date_before, ev
 	#The number of weeks between event date and the date after the event
 	diff_actual_user = (date_after - event_date).days /7
 
-	print(date_before)
-	print(event_date)
-	print(date_after)
-
 	#Average number of edits per user per week for the six months before
   	#This query is location proof
 	expected_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d') + "' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT (SUM(contributions)/"+str(diff_expected_user)+") as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
@@ -119,7 +115,7 @@ def abnormal_return_for_group(db, googleDriveConnection, groups, date_before, ev
     	boxpoints = False,
 	)
 
-	# find max and min for ranges in layout
+	# find max and min for ranges in layout 
 	maxVal = 0
 	minVal = 0
 	for data in dataAbnormal:
@@ -142,9 +138,26 @@ def abnormal_return_for_group(db, googleDriveConnection, groups, date_before, ev
 	filelocation = dir_write_to['local']+'/abnormalReturnContrib'+str(diff_actual_user)+'weekAfter-'+date_after.strftime('%Y-%m-%d')+'.png'
 	py.image.save_as(fig,filename = filelocation)
 
-	# UPLOAD TO GOOGLE DRIVE
+	# #=====UPLOAD TO GOOGLE DRIVE====
 	filename = 'abnormalReturnContrib-'+str(diff_actual_user)+'weekAfter.png'
-	googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'])
+	googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'], 'photo/png')
+
+	# ==== SET UP FOR JSON
+	filename = "abnormalReturnContrib-"+str(diff_actual_user)+"weekAfter"+".json"
+	filelocation = dir_write_to['local']+"/"+filename
+
+	# == CHANGE DECIMAL OBJECTS TO FLOAT DATA POINTS
+	for data in dataAbnormal:
+		for i in range(0,len(data)):
+			data[i] = float(data[i])
+	json_info = { "data " : dataAbnormal}
+
+	#====MAKE JSON======
+	with open(filelocation, "w") as f:
+		json.dump(json_info, f)
+
+	# UPLOAD TO GOOGLE DRIVE
+	googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'], 'text/json')
 
 #=================================================================================================
 #=========Looking at evolution of deletes/creation and edits per day for a certain period=========
@@ -391,7 +404,27 @@ def impact_import_creationtomaintenance_ratio_abnormal_return(db, googleDriveCon
 
 	# UPLOAD TO GOOGLE DRIVE
 	filename = 'abnormalReturnMaintenance'+str(diff_actual_user)+'.png'
-	googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'])
+	googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'], 'photo/png')
+
+	# ==== SET UP FOR JSON
+	filename = "abnormalReturnMaintenance-"+str(diff_actual_user)+"weekAfter"+".json"
+	filelocation = dir_write_to['local']+"/"+filename
+
+	# == CHANGE DECIMAL OBJECTS TO FLOAT DATA POINTS
+	for data in abnormal_return_per_group:
+		for i in range(0,len(data)):
+			data[i] = float(data[i])
+	json_info = { "data " : abnormal_return_per_group}
+
+	#====MAKE JSON======
+	with open(filelocation, "w") as f:
+		json.dump(json_info, f)
+
+	# UPLOAD TO GOOGLE DRIVE
+	googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'], 'text/json')
+
+
+
 
 	    
 

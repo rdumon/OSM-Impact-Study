@@ -9,14 +9,14 @@ class googleAPI:
         self.gauth = GoogleAuth()
         self.gauth.LocalWebserverAuth()
 
-    def upload_GoogleDrive(self,filename = '',filelocation = '', dir_id = ''):
+    def upload_GoogleDrive(self,filename = '',filelocation = '', dir_id = '', filetype = ''):
     
         drive = GoogleDrive(self.gauth)
-
-        file = drive.CreateFile({'title':filename, 'mimeType':'photo/png',
+        file = drive.CreateFile({'title':filename, 'mimeType':filetype,
                 "parents": [{"kind": "drive#fileLink","id": dir_id}]})
 
         print(filename)
+        print(filelocation)
         file.SetContentFile(filelocation)
         file.Upload()
 
