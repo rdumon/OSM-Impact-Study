@@ -1,5 +1,6 @@
 import sys
 import json
+import plotly
 import plotly.plotly as py
 import plotly.graph_objs as go
 import operator
@@ -144,7 +145,17 @@ def detectImport(db,cityName='', x = None , y = None, dir_write_to = '', googleD
     fig = dict(data = data, layout = layout)
     # py.plot(data,filename='box-plots osm London month')
     filelocation = dir_write_to['local']+'/import-dectection.png'
-    py.image.save_as(fig,filename = filelocation)
+
+    setPlotlyCredentials()
+    retry = True
+    while retry:
+        try:
+            retry = False
+            py.image.save_as(fig,filename = filelocation)
+        except (Exception, plotly.exceptions.PlotlyRequestError) as error:
+            print('Plotly limit error... Don\'t care!')
+            retry = True
+            setPlotlyCredentials()
 
     # UPLOAD TO GOOGLE DRIVE
     filename = 'import-dectection.png'
@@ -244,3 +255,18 @@ def imports_report(db, googleDriveConnection, imports= [], dir_write_to = ''):
 
 
     return imports_information
+
+# =============== Avoid plotly limitation ===============
+plotCred = [
+    ['RomainDumon','cJVtOQ4pZHAaQcBeTULV'],
+    ['aoussbai','uWPqQZwnbe5MgCrfqk3V'],
+    ['JhumanJ','xUuKkx6qmi5j3E75OpgT'],
+    ['charlydes','6ufsK3cLlAp4DUzohtm8']
+]
+currentPlotlyAccount = 0
+
+def setPlotlyCredentials():
+    global currentPlotlyAccount, plotCred
+
+    plotly.tools.set_credentials_file(username=plotCred[currentPlotlyAccount][0], api_key=plotCred[currentPlotlyAccount][1])
+    currentPlotlyAccount += 1

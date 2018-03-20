@@ -9,11 +9,14 @@ from import_detection.general import *
 from googleDrive.googleAPI import *
 from lib.db import DB
 
+<<<<<<< HEAD
 # =======DO NOT CHANGE ============
 # ====id of the folder files are shared on Drive
 shared_drive_id = '1jS9wv4965g5eKFdKJ7RrW-yHHXkv9OqH'
 
 
+=======
+>>>>>>> fadd8dddd2f61b50e5af1c784bfb661bc7ebc3a7
 # ======== Open Config =======
 # with open('config.json') as json_file:
 #     config = json.load(json_file)
@@ -24,6 +27,8 @@ shared_drive_id = '1jS9wv4965g5eKFdKJ7RrW-yHHXkv9OqH'
 # # Detect import
 x = [437240180,74091370]
 y = [437516580,74390270]
+
+
 
 # =============TEST==================
 
@@ -80,7 +85,7 @@ imports_normal_extra = imports_report(db, googleDriveConnection, imports_normal,
 #example
 imports_normal_extra =[[[datetime.datetime(2009, 8, 17, 0, 0), 'NaPTAN'], [{u'bus_stop': 20100}], [{u'aircraft_fuel': 0}]]]
 
-print("\n-------------Starting Impact Analysis-------------\n")
+print("\n-------------Starting Impacxwt Analysis-------------\n")
 
 # Analyse Import by Import
 for iMport in imports_normal_extra:
