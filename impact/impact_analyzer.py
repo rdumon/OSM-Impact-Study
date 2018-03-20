@@ -372,20 +372,8 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 
 	analysis_before = db.execute([amenity_type_per_user_before_all])
 	analysis_after = db.execute([amenity_type_per_user_after_all])
+	analyses = [analysis_before, analysis_after]
 
-
-
-	
-
-	
-	
-
-
-
-
-
-    
-	
 
 	refDict = build_dictionary_of_amenities()  
 	forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w", "name", "1", "4", "unclassified", "-1"}
@@ -393,33 +381,17 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 	groups = group_analyser(db, date_before, event_date, x, y)
 	
 
-	top1 = list(absol_dict)[2]
-	top2 = list(absol_dict)[1]
-	top3 = list(absol_dict)[0]
-	dict_top = {top1, top2, top3}
-	
-
-
-#=====================Before the import====================================
-
-
-	dict_top1={}
-	dict_top2={}
-	dict_top3={}
-	dict_top4={}
-	dict_top5={}
-	
+	top1 = list(absol_dict)[0]
+		
 	dict1 = {}
 	dict2 = {}
 	dict3 = {}
 	dict4 = {}
 	dict5 = {}
 
-	dict_top12={}
-	dict_top22={}
-	dict_top32={}
-	dict_top42={}
-	dict_top52={}
+	dict_total = [dict1, dict2, dict3, dict4, dict5]
+
+	
 	
 	dict12 = {}
 	dict22 = {}
@@ -427,175 +399,68 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 	dict42 = {}
 	dict52 = {}
 
+	dict_total2 = [dict12, dict22, dict32, dict42, dict52]
 
+	
 	for fields in analysis_before:
-		if fields[1] in groups[0]:
-			for tag in fields[0]:
-					for data in tag:
-						for detail in data: 
-							if data[detail] in dict_top and data[detail] not in forbiddenEntries:
-								if data[detail] in dict_top1:
-									dict_top1[data[detail]]+=1
-								else:
-									dict_top1[data[detail]] =1
-							if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-								if data[detail] in dict1: 
-									dict1[data[detail]]+=1
-								else: 
-									dict1[data[detail]] =1
-		if fields[1] in groups[1]:
-			for tag in fields[0]:
-					for data in tag:
-						for detail in data: 
-							if data[detail] in dict_top and data[detail] not in forbiddenEntries:
-								if data[detail] in dict_top2:
-									dict_top2[data[detail]]+=1
-								else:
-									dict_top2[data[detail]] =1
-							if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-								if data[detail] in dict2: 
-									dict2[data[detail]]+=1
-								else: 
-									dict2[data[detail]] =1
-		if fields[1] in groups[2]:
-			for tag in fields[0]:
-					for data in tag:
-						for detail in data: 
-							if data[detail] in dict_top and data[detail] not in forbiddenEntries:
-								if data[detail] in dict_top3:
-									dict_top3[data[detail]]+=1
-								else:
-									dict_top3[data[detail]] =1
-							if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-								if data[detail] in dict3: 
-									dict3[data[detail]]+=1
-								else: 
-									dict3[data[detail]] =1
-		if fields[1] in groups[3]:
-			for tag in fields[0]:
-					for data in tag:
-						for detail in data: 
-							if data[detail] in dict_top and data[detail] not in forbiddenEntries:
-								if data[detail] in dict_top4:
-									dict_top4[data[detail]]+=1
-								else:
-									dict_top4[data[detail]] =1
-							if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-								if data[detail] in dict4: 
-									dict4[data[detail]]+=1
-								else: 
-									dict4[data[detail]] =1
-		if fields[1] in groups[4]:
-			for tag in fields[0]:
-					for data in tag:
-						for detail in data: 
-							if data[detail] in dict_top and data[detail] not in forbiddenEntries:
-								if data[detail] in dict_top5:
-									dict_top5[data[detail]]+=1
-								else:
-									dict_top5[data[detail]] =1
-							if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-								if data[detail] in dict5: 
-									dict5[data[detail]]+=1
-								else: 
-									dict5[data[detail]] =1
-
-
-
-		for fields in analysis_after:
-			if fields[1] in groups[0]:
+		for count in range(0,5):
+			if fields[1] in groups[count]:
 				for tag in fields[0]:
 						for data in tag:
 							for detail in data: 
-								if data[detail] in dict_top and data[detail] not in forbiddenEntries:
-									if data[detail] in dict_top12:
-										dict_top12[data[detail]]+=1
-									else:
-										dict_top12[data[detail]] =1
 								if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-									if data[detail] in dict12: 
-										dict12[data[detail]]+=1
-									else: 
-										dict12[data[detail]] =1
-			if fields[1] in groups[1]:
+										if data[detail] in dict_total[count]: 
+											dict_total[count][data[detail]]+=1
+										else: 
+											dict_total[count][data[detail]] =1
+
+	for fields in analysis_after:
+		for count in range(0,5):
+			if fields[1] in groups[count]:
 				for tag in fields[0]:
 						for data in tag:
 							for detail in data: 
-								if data[detail] in dict_top and data[detail] not in forbiddenEntries:
-									if data[detail] in dict_top22:
-										dict_top22[data[detail]]+=1
-									else:
-										dict_top22[data[detail]] =1
 								if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-									if data[detail] in dict22: 
-										dict22[data[detail]]+=1
-									else: 
-										dict22[data[detail]] =1
-			if fields[1] in groups[2]:
-				for tag in fields[0]:
-						for data in tag:
-							for detail in data: 
-								if data[detail] in dict_top and data[detail] not in forbiddenEntries:
-									if data[detail] in dict_top32:
-										dict_top32[data[detail]]+=1
-									else:
-										dict_top32[data[detail]] =1
-								if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-									if data[detail] in dict32: 
-										dict32[data[detail]]+=1
-									else: 
-										dict32[data[detail]] =1
-			if fields[1] in groups[3]:
-				for tag in fields[0]:
-						for data in tag:
-							for detail in data: 
-								if data[detail] in dict_top and data[detail] not in forbiddenEntries:
-									if data[detail] in dict_top42:
-										dict_top42[data[detail]]+=1
-									else:
-										dict_top42[data[detail]] =1
-								if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-									if data[detail] in dict42: 
-										dict42[data[detail]]+=1
-									else: 
-										dict42[data[detail]] =1
-			if fields[1] in groups[4]:
-				for tag in fields[0]:
-						for data in tag:
-							for detail in data: 
-								if data[detail] in dict_top and data[detail] not in forbiddenEntries:
-									if data[detail] in dict_top52:
-										dict_top52[data[detail]]+=1
-									else:
-										dict_top52[data[detail]] =1
-								if data[detail] in refDict and data[detail] not in forbiddenEntries: 
-									if data[detail] in dict52: 
-										dict52[data[detail]]+=1
-									else: 
-										dict52[data[detail]] =1
+										if data[detail] in dict_total2[count]: 
+											dict_total2[count][data[detail]]+=1
+										else: 
+											dict_total2[count][data[detail]] =1
+
+	sorted_dict1 = dict()
+	sorted_dict2 = dict()
+	sorted_dict3 = dict()
+	sorted_dict4 = dict()
+	sorted_dict5 = dict()
 
 
+	sorted_dict_total = [sorted_dict1, sorted_dict2,sorted_dict3, sorted_dict4, sorted_dict5]
+    
 
+	for i in range (0,5):
+		sorted_dict_total[i] = sorted(dict_total[i].items(), key=operator.itemgetter(1))
 
+        
+	
+	sorted_dict12 = dict()
+	sorted_dict22 = dict()
+	sorted_dict32 = dict()
+	sorted_dict42 = dict()
+	sorted_dict52 = dict()
 
-	sorted_dict1 = sorted(dict1.items(), key=operator.itemgetter(1))
-	sorted_dict2 = sorted(dict2.items(), key=operator.itemgetter(1))
-	sorted_dict3 = sorted(dict3.items(), key=operator.itemgetter(1))
-	sorted_dict4 = sorted(dict4.items(), key=operator.itemgetter(1))
-	sorted_dict5 = sorted(dict5.items(), key=operator.itemgetter(1))
+	sorted_dict_total2 = [sorted_dict12, sorted_dict22,sorted_dict32, sorted_dict42, sorted_dict52]
 
+	for i in range (0,5):
+		sorted_dict_total2[i] = sorted(dict_total2[i].items(), key=operator.itemgetter(1))
+    	
 
-	sorted_dict12 = sorted(dict12.items(), key=operator.itemgetter(1))
-	sorted_dict22 = sorted(dict22.items(), key=operator.itemgetter(1))
-	sorted_dict32 = sorted(dict32.items(), key=operator.itemgetter(1))
-	sorted_dict42 = sorted(dict42.items(), key=operator.itemgetter(1))
-	sorted_dict52 = sorted(dict52.items(), key=operator.itemgetter(1))
 
 	total1=0
 	total2=0
 	total3=0
 	total4=0
 	total5=0
+
+	total_agg1 = [total1, total2, total3, total4, total5]
 
 
 	total12=0
@@ -604,177 +469,400 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 	total42=0
 	total52=0
 
-	for i in range (0, len(sorted_dict1)-1):
-		total1+=sorted_dict1[i][1]
-	for i in range (0, len(sorted_dict2)-1):
-		total2+=sorted_dict2[i][1]
-	for i in range (0, len(sorted_dict3)-1):
-		total3+=sorted_dict3[i][1]
-	for i in range (0, len(sorted_dict4)-1):
-		total4+=sorted_dict4[i][1]
-	for i in range (0, len(sorted_dict5)-1):
-		total5+=sorted_dict5[i][1]
+	total_agg2 = [total12, total22, total32, total42, total52]
 
+	for i in range (0,5):
+		for j in range (0, len(sorted_dict_total[i])-1):
+			total_agg1[i]+=sorted_dict_total[i][j][1]
 
-	if total1 ==0:
-		total1=1
-	if total2 ==0:
-		total2=1
-	if total3 ==0:
-		total3=1
-	if total4 ==0:
-		total4=1
-	if total5 ==0:
-		total5=1
-	
-
-
-	for i in range (0, len(sorted_dict12)-1):
-		total12+=sorted_dict12[i][1]
-	for i in range (0, len(sorted_dict22)-1):
-		total22+=sorted_dict22[i][1]
-	for i in range (0, len(sorted_dict32)-1):
-		total32+=sorted_dict32[i][1]
-	for i in range (0, len(sorted_dict42)-1):
-		total42+=sorted_dict42[i][1]
-	for i in range (0, len(sorted_dict52)-1):
-		total52+=sorted_dict52[i][1]
-
-	if total12 ==0:
-		total12=1
-	if total22 ==0:
-		total22=1
-	if total32 ==0:
-		total32=1
-	if total42 ==0:
-		total42=1
-	if total52 ==0:
-		total52=1
-	
-
-
-	for i in dict_top:
-		if i not in dict_top1:
-			dict_top1[i]=0
-		if i not in dict_top2:
-			dict_top2[i]=0
-		if i not in dict_top3:
-			dict_top3[i]=0
-		if i not in dict_top4:
-			dict_top4[i]=0
-		if i not in dict_top5:
-			dict_top5[i]=0
-		if i not in dict_top12:
-			dict_top12[i]=0
-		if i not in dict_top22:
-			dict_top22[i]=0
-		if i not in dict_top32:
-			dict_top32[i]=0
-		if i not in dict_top42:
-			dict_top42[i]=0
-		if i not in dict_top52:
-			dict_top52[i]=0
-	
+	for i in range (0,5):
+		for j in range (0, len(sorted_dict_total2[i])-1):
+			total_agg2[i]+=sorted_dict_total2[i][j][1]
 
 
 
-  ##plot the top edited amenities for each group before the import
+#=========================================I still have to loop the rendering of the charts===============================================
 
 
 
-	trace_top1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[dict_top1[top1]/total1, dict_top2[top1]/total2, dict_top3[top1]/total3, dict_top4[top1]/total4, dict_top5[top1]/total5], name='#1:' + top1, text=[dict_top1[top1], dict_top2[top1], dict_top3[top1], dict_top4[top1], dict_top5[top1]])
-	trace_top2 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[dict_top1[top2]/total1, dict_top2[top2]/total2, dict_top3[top2]/total3, dict_top4[top2]/total4, dict_top5[top2]/total5], name='#2:' + top2, text=[dict_top1[top2], dict_top2[top2], dict_top3[top2], dict_top4[top2], dict_top5[top2]])
-	trace_top3 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[dict_top1[top3]/total1, dict_top2[top3]/total2, dict_top3[top3]/total3, dict_top4[top3]/total4, dict_top5[top3]/total5], name='#3:' + top3, text=[dict_top1[top3], dict_top2[top3], dict_top3[top3], dict_top4[top3], dict_top5[top3]])
+	ordonnes1 = []
+	ordonnes2 = []
+	ordonnes3 = []
+	ordonnes = [ordonnes1, ordonnes2, ordonnes3]
+	text1 = []
+	text2 = []
+	text3 = []
+	text = [text1, text2, text3]
+
+	for j in range (0,3):
+		for i in range (0,5):
+			if total_agg1[i] == 0:
+				ordonnes[j].extend([0])
+			else: 
+				ordonnes[j].extend([sorted_dict_total[i][len(sorted_dict_total[i])-(j+1)][1]/total_agg1[i]])
 
 
-	data = [trace_top1, trace_top2, trace_top3]
-	layout = go.Layout(barmode='group')
-	fig = go.Figure(data=data, layout=layout)
-	
-
-
- ###plot the ratio of editing of the top amenities edited by the import
+	for j in range (0,3):
+		for i in range (0,5):
+			text[j].extend([sorted_dict_total[i][len(sorted_dict_total[i])-(j+1)][0]])
 
 
 
-	trace_before1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict1[len(sorted_dict1)-1][1]/total1, sorted_dict2[len(sorted_dict2)-1][1]/total2, sorted_dict3[len(sorted_dict3)-1][1]/total3, sorted_dict4[len(sorted_dict4)-1][1]/total4, sorted_dict5[len(sorted_dict5)-1][1]/total5], name='#1', text=[sorted_dict1[len(sorted_dict1)-1][0], sorted_dict2[len(sorted_dict2)-1][0], sorted_dict3[len(sorted_dict3)-1][0], sorted_dict4[len(sorted_dict4)-1][0], sorted_dict5[len(sorted_dict5)-1][0]])
-	trace_before2 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict1[len(sorted_dict1)-2][1]/total1, sorted_dict2[len(sorted_dict2)-2][1]/total2, sorted_dict3[len(sorted_dict3)-2][1]/total3, sorted_dict4[len(sorted_dict4)-2][1]/total4, sorted_dict5[len(sorted_dict5)-2][1]/total5], name='#2',text=[sorted_dict1[len(sorted_dict1)-2][0], sorted_dict2[len(sorted_dict2)-2][0], sorted_dict3[len(sorted_dict3)-2][0], sorted_dict4[len(sorted_dict4)-2][0], sorted_dict5[len(sorted_dict5)-2][0]])
-	trace_before3 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict1[len(sorted_dict1)-3][1]/total1, sorted_dict2[len(sorted_dict2)-3][1]/total2, sorted_dict3[len(sorted_dict3)-3][1]/total3, sorted_dict4[len(sorted_dict4)-3][1]/total4, sorted_dict5[len(sorted_dict5)-3][1]/total5], name='#3', text=[sorted_dict1[len(sorted_dict1)-3][0], sorted_dict2[len(sorted_dict2)-3][0], sorted_dict3[len(sorted_dict3)-3][0], sorted_dict4[len(sorted_dict4)-3][0], sorted_dict5[len(sorted_dict5)-3][0]])
+
+	trace_before1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes1, name='#1', text=text1)
+	trace_before2 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes2, name='#2', text=text2)
+	trace_before3 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes3, name='#3', text=text3)
 
 	data1 = [trace_before1, trace_before2, trace_before3]
-	layout1 = go.Layout(barmode='group')
+	layout1 = go.Layout(barmode='group', title= 'top_amenity_focus_before')
 	fig1 = go.Figure(data=data1, layout=layout1)
+
+
+
+
+	ordonnes12 = []
+	ordonnes22 = []
+	ordonnes32 = []
+	ordonness = [ordonnes12, ordonnes22, ordonnes32]
+	text12 = []
+	text22 = []
+	text32 = []
+	textt = [text12, text22, text32]
+
+	for j in range (0,3):
+		for i in range (0,5):
+			if total_agg2[i] == 0:
+				ordonness[j].extend([0])
+			else: 
+				ordonness[j].extend([sorted_dict_total2[i][len(sorted_dict_total2[i])-(j+1)][1]/total_agg2[i]])
+
+
+	for j in range (0,3):
+		for i in range (0,5):
+			if len(sorted_dict_total2[i]) == 0:
+				textt[j].extend([0])
+			else:
+				textt[j].extend([sorted_dict_total2[i][len(sorted_dict_total2[i])-(j+1)][0]])
+
+
+
+
+	trace_after1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes12, name='#1', text=text12)
+	trace_after2 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes22, name='#2', text=text22)
+	trace_after3 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes32, name='#3', text=text32)
+
+	data12 = [trace_after1, trace_after2, trace_after3]
+	layout12 = go.Layout(barmode='group', title= 'top_amenity_focus_after')
+	fig12 = go.Figure(data=data12, layout=layout12)
+
+
+
+	# # SAVE LOCALLY
+	py.image.save_as(fig1, filename=import_dir['local']+'/top_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png')
+
+	# # UPLOAD TO GOOGLE DRIVE
+	filename = 'top_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png'
+	filelocation = import_dir['local']+'/top_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png'
+	googleDriveConnection.upload_GoogleDrive(filename,filelocation, import_dir['google'])
+
+
+	# # SAVE LOCALLY
+	py.image.save_as(fig12, filename=import_dir['local']+'/top_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png')
+
+	# # UPLOAD TO GOOGLE DRIVE
+	filename = 'top_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png'
+	filelocation = import_dir['local']+'/top_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png'
+	googleDriveConnection.upload_GoogleDrive(filename,filelocation, import_dir['google'])
+
+	
+
+def top_import_amenity_abnormal_return(db,googleDriveConnection, date_before,event_date,date_after, iMport, x=None, y=None, import_dir =''):
+
+	#Dates computations
+	
+
+	where_clause = ' '
+	if x!=None and y!=None and len(x) == 2 and len(y) == 2:
+		where_clause += 'AND latitude > '+str(x[1])+' AND longitude > '+str(x[0])+' AND latitude < '+str(y[1])+' AND longitude < '+str(y[0])
+
+	amenity_type_per_user_before_nodes= " SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at >= '" + date_before.strftime('%Y-%m-%d') +"' AND created_at < '" + event_date.strftime('%Y-%m-%d')+" 24:00:00'"+ where_clause + " GROUP BY user_name"
+
+	amenity_type_per_user_after_nodes = " SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at < '" + date_after.strftime('%Y-%m-%d') +"' AND created_at > '" + event_date.strftime('%Y-%m-%d')+" 00:00:00'"+ where_clause + " GROUP BY user_name"
+
+	amenity_type_per_user_before_ways= " SELECT json_agg(tags) as tags, user_name FROM ways WHERE created_at >= '" + date_before.strftime('%Y-%m-%d') +"' AND created_at < '" + event_date.strftime('%Y-%m-%d')+" 24:00:00' GROUP BY user_name"
+
+	amenity_type_per_user_after_ways = " SELECT json_agg(tags) as tags, user_name FROM ways WHERE created_at < '" + date_after.strftime('%Y-%m-%d') +"' AND created_at > '" + event_date.strftime('%Y-%m-%d')+" 00:00:00' GROUP BY user_name"
+
+	amenity_type_per_user_before_all = "SELECT json_agg(result.tags) as tags, result.user_name FROM (" + amenity_type_per_user_before_nodes + " UNION ALL " + amenity_type_per_user_before_ways+") AS result GROUP BY result.user_name"
+
+	amenity_type_per_user_after_all = "SELECT json_agg(result.tags) as tags, result.user_name FROM (" + amenity_type_per_user_after_nodes + " UNION ALL " + amenity_type_per_user_after_ways+") AS result GROUP BY result.user_name"
+
+	analysis_before = db.execute([amenity_type_per_user_before_all])
+	analysis_after = db.execute([amenity_type_per_user_after_all])
+
+	analyses = [analysis_before,analysis_after]
+
+
+	refDict = build_dictionary_of_amenities()     
+	forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w", "name", "1", "4", "unclassified", "-1"}
+	absol_dict = get_amenities_top(db, iMport)
+	groups = group_analyser(db, date_before, event_date, x, y)
+	
+
+	top1 = list(absol_dict)[0]
+
+
+	user_ratio_group1 = dict()
+	user_ratio_group2 = dict()
+	user_ratio_group3 = dict()
+	user_ratio_group4 = dict()
+	user_ratio_group5 = dict()
+
+	user_ratio_group_total = [user_ratio_group1, user_ratio_group2, user_ratio_group3, user_ratio_group4, user_ratio_group5]
+
+	user_contrib_group1 = dict()
+	user_contrib_group2 = dict()
+	user_contrib_group3 = dict()
+	user_contrib_group4 = dict()
+	user_contrib_group5 = dict()
+
+	user_contrib_group_total = [user_contrib_group1, user_contrib_group2, user_contrib_group3, user_contrib_group4, user_contrib_group5]
+	
+
+	user_ratio_group12 = dict()
+	user_ratio_group22 = dict()
+	user_ratio_group32 = dict()
+	user_ratio_group42 = dict()
+	user_ratio_group52 = dict()
+
+	user_ratio_group_total2 = [user_ratio_group12, user_ratio_group22, user_ratio_group32, user_ratio_group42, user_ratio_group52]
+
+	user_contrib_group12 = dict()
+	user_contrib_group22 = dict()
+	user_contrib_group32 = dict()
+	user_contrib_group42 = dict()
+	user_contrib_group52 = dict()
+
+	user_contrib_group_total2 = [user_contrib_group12, user_contrib_group22, user_contrib_group32, user_contrib_group42, user_contrib_group52]
+	
+	
 	
 
 
-
- ###plot the top edited amenities for each group after the import
-
-	trace_top12 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[dict_top12[top1]/total12, dict_top22[top1]/total22, dict_top32[top1]/total32, dict_top42[top1]/total42, dict_top52[top1]/total52], name='#1:' + top1, text=[dict_top12[top1], dict_top22[top1], dict_top32[top1], dict_top42[top1], dict_top52[top1]])
-	trace_top22 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[dict_top12[top2]/total12, dict_top22[top2]/total22, dict_top32[top2]/total32, dict_top42[top2]/total42, dict_top52[top2]/total52], name='#2:' + top2, text=[dict_top12[top2], dict_top22[top2], dict_top32[top2], dict_top42[top2], dict_top52[top2]])
-	trace_top32 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[dict_top12[top3]/total12, dict_top22[top3]/total22, dict_top32[top3]/total32, dict_top42[top3]/total42, dict_top52[top3]/total52], name='#3:' + top3, text=[dict_top12[top3], dict_top22[top3], dict_top32[top3], dict_top42[top3], dict_top52[top3]])
+#=====================here we count the number of contributions per user for the top amenity and the total contributions====================================
 
 
-	data2 = [trace_top12, trace_top22, trace_top32]
-	layout2 = go.Layout(barmode='group')
-	fig2 = go.Figure(data=data2, layout=layout2)
 	
 
- ###plot the ratio of editing of the top amenities edited by the import
+	
+	for fields in analysis_before:
+		for count in range(0,4):
+			if fields[1] in groups[count]:
+				for tag in fields[0]:
+						for data in tag:
+							for detail in data: 
+								if data[detail] == top1 and data[detail] not in forbiddenEntries:
+										if fields[1] in user_ratio_group_total[count]:
+											user_ratio_group_total[count][fields[1]]+=1
+										else:
+											user_ratio_group_total[count][fields[1]] =1
+									  
 
-	trace_after1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict12[len(sorted_dict12)-1][1]/total12, sorted_dict22[len(sorted_dict22)-1][1]/total22, sorted_dict32[len(sorted_dict32)-1][1]/total32, sorted_dict42[len(sorted_dict42)-1][1]/total42, sorted_dict52[len(sorted_dict52)-1][1]/total52], name='#1', text=[sorted_dict12[len(sorted_dict12)-1][0], sorted_dict22[len(sorted_dict22)-1][0], sorted_dict32[len(sorted_dict32)-1][0], sorted_dict42[len(sorted_dict42)-1][0], sorted_dict52[len(sorted_dict52)-1][0]])
-	trace_after2 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict12[len(sorted_dict12)-2][1]/total12, sorted_dict22[len(sorted_dict22)-2][1]/total22, sorted_dict32[len(sorted_dict32)-2][1]/total32, sorted_dict42[len(sorted_dict42)-2][1]/total42, sorted_dict52[len(sorted_dict52)-2][1]/total52], name='#2', text=[sorted_dict12[len(sorted_dict12)-2][0], sorted_dict22[len(sorted_dict22)-2][0], sorted_dict32[len(sorted_dict32)-2][0], sorted_dict42[len(sorted_dict42)-2][0], sorted_dict52[len(sorted_dict52)-2][0]])
-	trace_after3 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=[sorted_dict12[len(sorted_dict12)-3][1]/total12, sorted_dict22[len(sorted_dict22)-3][1]/total22, sorted_dict32[len(sorted_dict32)-3][1]/total32, sorted_dict42[len(sorted_dict42)-3][1]/total42, sorted_dict52[len(sorted_dict52)-3][1]/total52], name='#3', text=[sorted_dict12[len(sorted_dict12)-3][0], sorted_dict22[len(sorted_dict22)-3][0], sorted_dict32[len(sorted_dict32)-3][0], sorted_dict42[len(sorted_dict42)-3][0], sorted_dict52[len(sorted_dict52)-3][0]])
-
-	data3 = [trace_after1, trace_after2, trace_after3]
-	layout3 = go.Layout(barmode='group')
-	fig3 = go.Figure(data=data3, layout=layout3)
+								if data[detail] in refDict and data[detail] not in forbiddenEntries: 
+										if fields[1] in user_contrib_group_total[count]: 
+											user_contrib_group_total[count][fields[1]]+=1
+										else: 
+											user_contrib_group_total[count][fields[1]] =1
 
 
+	for fields in analysis_after:
+		for count in range(0,4):
+			if fields[1] in groups[count]:
+				for tag in fields[0]:
+						for data in tag:
+							for detail in data: 
+								if data[detail] == top1 and data[detail] not in forbiddenEntries:
+										if fields[1] in user_ratio_group_total2[count]:
+											user_ratio_group_total2[count][fields[1]]+=1
+										else:
+											user_ratio_group_total2[count][fields[1]] =1
+									  
+
+								if data[detail] in refDict and data[detail] not in forbiddenEntries: 
+										if fields[1] in user_contrib_group_total2[count]: 
+											user_contrib_group_total2[count][fields[1]]+=1
+										else: 
+											user_contrib_group_total2[count][fields[1]] =1
+
+
+	
+
+#============================now we can calculate the ratio per user for each group============================================
+
+	ratio1 = dict()
+	ratio2 = dict()
+	ratio3 = dict()
+	ratio4 = dict()
+	ratio5 = dict()
+
+	ratio_total = [ratio1, ratio2, ratio3, ratio4, ratio5]
+
+	ratio12 = dict()
+	ratio22 = dict()
+	ratio32 = dict()
+	ratio42 = dict()
+	ratio52 = dict()
+
+	ratio_total2 = [ratio12, ratio22, ratio32, ratio42, ratio52]
+
+	for dictio in  user_contrib_group_total:
+		for count in dictio:
+			for i in range(0,4):
+				if count in groups[i]:
+					if dictio[count]==0:
+						ratio_total[i][count]=0
+					else:
+						if len(user_ratio_group_total[i])!=0 and len(dictio)!=0 and count in user_ratio_group_total[i]:
+							ratio_total[i][count] = user_ratio_group_total[i][count] / dictio[count]
+
+
+	for dictio in  user_contrib_group_total2:
+		for count in dictio:
+			for i in range(0,4):
+				if count in groups[i]:
+					if dictio[count]==0:
+						ratio_total2[i][count]=0
+					else:
+						if len(user_ratio_group_total2[i])!=0 and len(dictio)!=0 and count in user_ratio_group_total2[i]:
+							ratio_total2[i][count] = user_ratio_group_total2[i][count] / dictio[count]
+
+
+
+#=========================now we plot the box plots================================================
+
+	dataAbnormal = []
+	for ratio in ratio_total:
+		data = []
+		for user in ratio:
+			data.append(ratio[user])
+		dataAbnormal.append(data)
+	
+
+
+	dataAbnormal2 = []
+	for ratio in ratio_total2:
+		data2 = []
+		for user in ratio:
+			data.append(ratio[user])
+		dataAbnormal2.append(data)
+	
+
+
+#=======================this is working but does not handle empty sequence for min and max settings=============================
+
+	group_1 = go.Box(
+	    	y=trim_95Perc_rule(dataAbnormal[0]),
+	    	name = 'Group 1',
+	    	boxpoints = False,
+		)
+	group_2 = go.Box(
+	    	y=trim_95Perc_rule(dataAbnormal[1]),
+	    	name = 'Group 2',
+	    	boxpoints = False,
+		)
+	group_3 = go.Box(
+	    	y=trim_95Perc_rule(dataAbnormal[2]),
+	    	name = 'Group 3',
+	    	boxpoints = False,
+		)
+	group_4 = go.Box(
+	    	y=trim_95Perc_rule(dataAbnormal[3]),
+	    	name = 'Group 4',
+	    	boxpoints = False,
+		)
+	group_5 = go.Box(
+	    	y=trim_95Perc_rule(dataAbnormal[4]),
+	    	name = 'Group 5',
+	    	boxpoints = False,
+		)
+
+	layout = go.Layout(
+			title = "Abnormal Return before" ,
+		    width=3600, height=2400,
+		    
+
+		)
+
+	data = [group_1,group_2,group_3,group_4,group_5]
+	fig = dict(data = data, layout = layout)
+
+	# py.plot(data,filename='box-plots osm London month')
+
+
+
+
+	group_12 = go.Box(
+	    	y=dataAbnormal2[0],
+	    	name = 'Group 1',
+	    	boxpoints = False,
+		)
+	group_22 = go.Box(
+	    	y=dataAbnormal2[1],
+	    	name = 'Group 2',
+	    	boxpoints = False,
+		)
+	group_32 = go.Box(
+	    	y=dataAbnormal2[2],
+	    	name = 'Group 3',
+	    	boxpoints = False,
+		)
+	group_42 = go.Box(
+	    	y=dataAbnormal2[3],
+	    	name = 'Group 4',
+	    	boxpoints = False,
+		)
+	group_52 = go.Box(
+	    	y=dataAbnormal2[4],
+	    	name = 'Group 5',
+	    	boxpoints = False,
+		)
+
+	layout2 = go.Layout(
+			title = "Abnormal Return after" ,
+		    width=3600, height=2400
+		    
+
+		)
+
+	data2 = [group_12,group_22,group_32,group_42,group_52]
+	fig2 = dict(data = data2, layout = layout2)
+
+	# py.plot(data,filename='box-plots osm London month')
 
 
 
 
 
 	# # SAVE LOCALLY
-	# py.image.save_as(fig, filename=dir_write_to['local']+'/top_amenity_focus_before'+date_convert.strftime('%Y-%m-%d')+'.png')
+	py.image.save_as(fig, filename=import_dir['local']+'/import_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png')
 
 	# # UPLOAD TO GOOGLE DRIVE
-	# filename = 'top_amenity_focus_before'+date_convert.strftime('%Y-%m-%d')+'.png'
-	# filelocation = dir_write_to['local']+'/top_amenity_focus_before'+date_convert.strftime('%Y-%m-%d')+'.png'
-	# googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'])
+	filename = 'import_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png'
+	filelocation = import_dir['local']+'/import_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png'
+	googleDriveConnection.upload_GoogleDrive(filename,filelocation, import_dir['google'])
 
 
 	# # SAVE LOCALLY
-	# py.image.save_as(fig1, filename=dir_write_to['local']+'/top_amenity_focus_after'+date_convert.strftime('%Y-%m-%d')+'.png')
+	py.image.save_as(fig2, filename=import_dir['local']+'/import_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png')
 
 	# # UPLOAD TO GOOGLE DRIVE
-	# filename = 'top_amenity_focus_after'+date_convert.strftime('%Y-%m-%d')+'.png'
-	# filelocation = dir_write_to['local']+'/top_amenity_focus_after'+date_convert.strftime('%Y-%m-%d')+'.png'
-	# googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'])
-
-	# # SAVE LOCALLY
-	# py.image.save_as(fig2, filename=dir_write_to['local']+'/top_import_amenity_before'+date_convert.strftime('%Y-%m-%d')+'.png')
-
-	# # UPLOAD TO GOOGLE DRIVE
-	# filename = 'top_import_amenity_before'+date_convert.strftime('%Y-%m-%d')+'.png'
-	# filelocation = dir_write_to['local']+'/top_import_amenity_before'+date_convert.strftime('%Y-%m-%d')+'.png'
-	# googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'])
-
-	# # SAVE LOCALLY
-	# py.image.save_as(fig3, filename=dir_write_to['local']+'/top_import_amenity_after'+date_convert.strftime('%Y-%m-%d')+'.png')
-
-	# # UPLOAD TO GOOGLE DRIVE
-	# filename = 'top_import_amenity_after'+date_convert.strftime('%Y-%m-%d')+'.png'
-	# filelocation = dir_write_to['local']+'/top_import_amenity_after'+date_convert.strftime('%Y-%m-%d')+'.png'
-	# googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'])
+	filename = 'import_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png'
+	filelocation = import_dir['local']+'/import_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png'
+	googleDriveConnection.upload_GoogleDrive(filename,filelocation, import_dir['google'])
 
 
 
-
-
-
-
+	#=======================this is working but does not handle empty sequence for min and max settings=============================
 
 
 
@@ -786,7 +874,7 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 #-----------------------------------------------------------------------------------------------------------------------------
 
 #===================================================================================================================
-#=========DETECTS THE ABSOLUTE TOP 3 OF MOST EDITED AMENITIES AMONG NODES, WAYS AND RELATIONS OF AN IMPORT=========
+#=========DETECTS THE ABSOLUTE TOP 1 OF MOST EDITED AMENITIES AMONG NODES, WAYS AND RELATIONS OF AN IMPORT=========
 #===================================================================================================================
 
 def get_amenities_top(db, iMport=[]):
@@ -805,16 +893,7 @@ def get_amenities_top(db, iMport=[]):
 			if elements not in dict_top and elements not in forbiddenEntries:
 				dict_top[elements] = i[elements]
 
-	if len(dict_top)==2:
-		dict_top["not provided"]=0
-	if len(dict_top)==1:
-		dict_top["not provided1"]=0
-		dict_top["not provided2"]=0
-
-
-
-
-	absol_dict = dict(sorted(dict_top.items(), key=operator.itemgetter(1), reverse=True)[:3])
+	absol_dict = dict(sorted(dict_top.items(), key=operator.itemgetter(1), reverse=True)[:1])
 
 	
 
