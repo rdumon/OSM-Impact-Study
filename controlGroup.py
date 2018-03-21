@@ -10,6 +10,10 @@ from import_detection.general import *
 from googleDrive.googleAPI import *
 from lib.db import DB
 
+# SET TO CORRECT COORDINATES
+x = [437240180,74091370]
+y = [437516580,74390270]
+
 
 # =======DO NOT CHANGE ============
 # ====id of the folder files are shared on Drive
@@ -47,7 +51,7 @@ with open('config.json') as json_file:
     config = json.load(json_file)
 db = DB(config['DB'])
 
-# =============================================================SETUP FOLDERS===============
+# =============================================================SETUP FOLDERS===============================================
 
 import_dir = {}
 
@@ -61,15 +65,14 @@ google_folder_root_id = googleDriveConnection.createFolder(city+'CONTROLGROUP', 
 import_dir['google'] = google_folder_root_id
 
 
-# =============================================================MAIN SCRIPT===============
+# =============================================================MAIN SCRIPT=================================================
 
 jsondata = {}
-#  Configure db
 with open(jsonPath, "r") as jsonFile:
     jsondata = json.load(jsonFile)
 
 
-# ===============================================IMPACT ANALYSIS COMPARISON===================================
+# ===============================================IMPACT ANALYSIS COMPARISON================================================
 
 for iMport in jsondata:
 
@@ -83,12 +86,8 @@ for iMport in jsondata:
 	# ================ CREATE DIR FOR GOOGLE DRIVE ==================
 	import_dir['google'] = googleDriveConnection.createFolder(import_date.strftime('%Y-%m-%d'), import_dir['google'])
 
-
-	# PRINT THE NODES OF THIS IMPORT
-	#draw_heatMap(db, googleDriveConnection, iMport, x, y, city, import_dir)
-
 	# GET THE USER GROUPS
-	groups = group_analyser(db, import_date-relativedelta(months=+6), import_date)
+	groups = group_analyserv2(db, import_date-relativedelta(months=+6), import_date)
 
 	# # FOR EACH ANALYSIS WE WANT TO LOOK AT impact afer 1 week, 1 month, 3 month
 	time_intervals = [import_date+relativedelta(weeks=+1), import_date+relativedelta(months=+1), import_date+relativedelta(months=+3)]
@@ -96,17 +95,27 @@ for iMport in jsondata:
 	# # ABNORMAL RETURN OF CONTRIBUTIONS PER GROUP (based on expected return of 6 month before the import)
 	# # 1 week, 1 month, 3 month
 	for date_after in time_intervals:
-		abnormal_return_for_group(db, googleDriveConnection, groups, import_date-relativedelta(months=+6) , import_date , date_after,import_dir)
+		abnormal_return_for_group(db, googleDriveConnection, groups, import_date-relativedelta(months=+6) , import_date , date_after, dir_write_to =import_dir)
 
 	# EVOLUTION OF EDITS PERIOD
 	# 6 month after
-	contribution_types_gobal_analysis(db, googleDriveConnection, import_date-relativedelta(months=+6),import_date,import_date+relativedelta(months=+6),import_dir)
+	contribution_types_gobal_analysis(db, googleDriveConnection, import_date-relativedelta(months=+6),import_date,import_date+relativedelta(months=+6), x= None, y=None, import_dir)
 
 
-	# ABNORMAL RETURN OF CONTRIBUTIONS PER GROUP
-	# 1 week, 1 month, 3 month
+	# # ABNORMAL RETURN OF CONTRIBUTIONS PER GROUP
+	# # 1 week, 1 month, 3 month
 	for date_after in time_intervals:
 		impact_import_creationtomaintenance_ratio_abnormal_return(db, googleDriveConnection, groups,  import_date-relativedelta(months=+6), import_date, date_after, import_dir)
+
+
+	# # # AMENITY EVOLUTION PER GROUP
+	# # # 1 week, 1 month, 3 month
+	for date_after in time_intervals:
+	 	top_amenity_evolution_per_group(db,googleDriveConnection, import_date-relativedelta(months=+6),import_date,date_after, x=None, y=None, import_dir)
+
+	# # SURVIVAL ANALYSIS
+	# # 1 week, 1 month, 3 months
+	survivalAnalysis(db,googleDriveConnection, import_date-relativedelta(months=+6),import_date, x, y, import_dir)
 
 	#END: ==============RESET THE FOLDERS=======
 	import_dir['local'] = local_folder_root

@@ -987,13 +987,13 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
 #=======================#
 
 
+
 def survivalAnalysis(groups, db,googleDriveConnection, date_before,event_date, x=None, y=None, import_dir =''):
+
     
     timeOfDeath = db.execute(["select MAX(max) as date, user_name from ((select user_name, max(created_at) from nodes group by user_name order by user_name) union all (select user_name, max(created_at) from ways group by user_name order by user_name)) as t group by user_name;"])
     # select date, count(user_name) from () as x group by date
-    # print(timeOfDeath)
-    
-    # print(len(groups))
+
     users = []
     time = []
     timeOfDeath.sort()
