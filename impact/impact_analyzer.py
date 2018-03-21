@@ -1310,7 +1310,7 @@ def find_range(data):
 # =============== Avoid plotly limitation ===============
 plotCred = [
     ['RomainDumon','cJVtOQ4pZHAaQcBeTULV'],
-    ['aoussbai','uWPqQZwnbe5MgCrfqk3V'],
+    ['aoussbai','jWkPjojJV8vrsSDbeU8J'],
     ['JhumanJ','xUuKkx6qmi5j3E75OpgT'],
     ['charlydes','6ufsK3cLlAp4DUzohtm8']
 ]
