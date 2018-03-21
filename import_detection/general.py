@@ -1,3 +1,9 @@
+"""
+This module contains the function responsible for performing all analyses of one import
+
+def analyse_import(db, googleDriveConnection, iMport, x = None, y = None, city = '', import_dir =''):
+"""
+
 import sys
 import datetime
 from dateutil.relativedelta import relativedelta
@@ -5,11 +11,7 @@ import os
 from impact.impact_analyzer import *
 from import_detection.colorgraph import *
 from googleDrive.googleAPI import *
-#-----------------------------------------------------------------------------------------------------------------------------
-#-----------------------------------------------------------------------------------------------------------------------------
-#Class containing the functions that generalise the results of impact analysis
-#-----------------------------------------------------------------------------------------------------------------------------
-#-----------------------------------------------------------------------------------------------------------------------------
+
 
 def analyse_import(db, googleDriveConnection, iMport, x = None, y = None, city = '', import_dir =''):
 
@@ -60,10 +62,3 @@ def analyse_import(db, googleDriveConnection, iMport, x = None, y = None, city =
 	# # 1 week, 1 month, 3 months
 
 	survivalAnalysis(groups, db,googleDriveConnection, import_date-relativedelta(months=+6),import_date, x, y, import_dir)
-
-
-
-
-	#Keeping track of each graph ids and their corresponding imports (look into tacking screenshots for each graph we produce)
-	#Compare to well chosen Control Groups !!!!!!!!!!!!
-	#this function should return information helping us decipher quickly what graphs correspond to which imports

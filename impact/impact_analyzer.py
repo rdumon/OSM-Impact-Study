@@ -1,3 +1,21 @@
+"""
+Module which has all the functions for impact analysis
+
+def abnormal_return_for_group(db, groups, date_before, event_date , date_after, x = None, y = None)
+
+def contribution_types_gobal_analysis(db, date_before,event_date,date_after, x=None, y=None)
+
+def impact_import_creationtomaintenance_ratio(db, groups, date_before, event_date, Graph_title)
+
+def impact_import_creationtomaintenance_ratio_abnormal_return(db, groups, date_before, event_date, date_after)
+
+def top_amenity_evolution_per_group(db,groups, date_before,event_date,date_after, x=None, y=None)
+
+def group_analyser(db, date_before, event_date)
+
+def trim_95Perc_rule(data)
+"""
+
 import sys
 import json
 import decimal
@@ -15,31 +33,6 @@ sys.path.insert(0, '../lib/')
 from lib.amenities import *
 
 from googleDrive.googleAPI import *
-# from db import DB
-
-#LIST OF FUNCTIONS IN THIS FILE:
-
-# def abnormal_return_for_group(db, groups, date_before, event_date , date_after, x = None, y = None)
-# counts abnormal  WAYS/NODES/RELATIONS
-
-# def contribution_types_gobal_analysis(db, date_before,event_date,date_after, x=None, y=None)
-# evolution of edits/creations/delete over a period of time of WAYS/NODES/RELATIONS
-
-# def impact_import_creationtomaintenance_ratio(db, groups, date_before, event_date, Graph_title)
-# WAYS/NODES/RELATIONS
-
-# def impact_import_creationtomaintenance_ratio_abnormal_return(db, groups, date_before, event_date, date_after)
-# WAYS/NODES/RELATIONS
-
-# def top_amenity_evolution_per_group(db,groups, date_before,event_date,date_after, x=None, y=None)
-# NODES
-
-# def group_analyser(db, date_before, event_date)
-# WAYS/NODES/RELATIONS
-
-# def trim_95Perc_rule(data)
-
-
 
 #-----------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------------

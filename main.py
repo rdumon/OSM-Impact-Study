@@ -14,13 +14,6 @@ from lib.db import DB
 # ====id of the folder files are shared on Drive
 shared_drive_id = '1jS9wv4965g5eKFdKJ7RrW-yHHXkv9OqH'
 
-# ======== Open Config =======
-# with open('config.json') as json_file:
-#     config = json.load(json_file)
-
-# ======== Create Database =======
-# db = DB(config['DB'])
-
 # # Detect import
 x = [437240180,74091370]
 y = [437516580,74390270]
@@ -59,8 +52,6 @@ with open("config.json", "w") as jsonFile:
 with open('config.json') as json_file:
     config = json.load(json_file)
 db = DB(config['DB'])
-
-#WALTHROUGH OF MAIN SCRIPT
 
 # CREATE A GOOGLE API CONNECTOR OBJECT
 googleDriveConnection =  googleAPI()

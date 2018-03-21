@@ -1,3 +1,7 @@
+"""
+This module controls the main script to run an analysis of the control groups
+""" 
+
 import sys
 import json
 import datetime

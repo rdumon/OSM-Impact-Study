@@ -1,3 +1,12 @@
+"""
+This module does all the analysis to detect an import
+
+def detectImport(db,cityName='', x = None , y = None, dir_write_to = '', googleDriveConnection = '', detectionLevel = ):
+def find_contribution_type_of_import(db, iMport = [], table =""):
+def imports_report(db, googleDriveConnection, imports= [], dir_write_to = ''):
+    
+"""
+
 import sys
 import json
 import plotly
@@ -9,23 +18,13 @@ from operator import itemgetter
 import datetime
 from lib.amenities import *
 
-#LIST OF FUNCTIONS IN THIS FILE:
-
-# def detectImport(db,cityName='',x=None,y=None):
-# WAYS/NODES
-
-# def find_contribution_type_of_import(db, iMport = [], table ="")
-# you decide
-
-
-
-# ========== Code ================
-
-# DB is the database
-# X is the lower left point
-# Y is the upper right point
 
 def detectImport(db,cityName='', x = None , y = None, dir_write_to = '', googleDriveConnection = '', detectionLevel = 20):
+    """
+    DB is the database
+    X is the lower left point
+    Y is the upper right point
+    """
 
     # Queries
     creation_date_query = "SELECT user_name, min(created_at) from (select user_name,to_char(min(created_at),'YYYYMMDD') as created_at from nodes  group by user_name UNION ALL select user_name, to_char(min(created_at),'YYYYMMDD') as created_at from ways group by user_name) as A group by user_name"
