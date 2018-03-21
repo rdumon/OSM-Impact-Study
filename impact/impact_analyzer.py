@@ -1140,7 +1140,6 @@ def group_analyserv2(db, date_before, event_date):
             current_sum += expected_per_user[user_counter][0]
             user_counter-=1
 
-    print(groups)
 
     return groups
 
