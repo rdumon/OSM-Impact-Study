@@ -662,10 +662,13 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
 
     for j in range (0,3):
         for i in range (0,5):
-            if len(sorted_dict_total2[i]) == 0:
-                textt[j].extend([0])
-            else:
-                textt[j].extend([sorted_dict_total2[i][len(sorted_dict_total2[i])-(j+1)][0]])
+            try: 
+                if len(sorted_dict_total2[i]) == 0:
+                    textt[j].extend([0])
+                else:
+                    textt[j].extend([sorted_dict_total2[i][len(sorted_dict_total2[i])-(j+1)][0]])
+            except(IndexError) as error: 
+                textt[j].extend("name not provided")
 
 
 
