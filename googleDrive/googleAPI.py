@@ -15,10 +15,9 @@ class googleAPI:
         file = drive.CreateFile({'title':filename, 'mimeType':filetype,
                 "parents": [{"kind": "drive#fileLink","id": dir_id}]})
 
-        print(filename)
-        print(filelocation)
         file.SetContentFile(filelocation)
         file.Upload()
+        print("Uploaded to Google Drive: " + filename)
 
     # finds a folder and creates one if it does not exits 
     def createFolder(self,foldername = '', dir_id = ''):
