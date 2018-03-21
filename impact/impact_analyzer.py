@@ -1315,7 +1315,8 @@ plotCred = [
     ['RomainDumon','cJVtOQ4pZHAaQcBeTULV'],
     ['aoussbai','jWkPjojJV8vrsSDbeU8J'],
     ['JhumanJ','xUuKkx6qmi5j3E75OpgT'],
-    ['charlydes','6ufsK3cLlAp4DUzohtm8']
+    ['charlydes','6ufsK3cLlAp4DUzohtm8'], 
+    ['kristelle', 'SurOvd0IiMprlmA3k7rp']
 ]
 currentPlotlyAccount = 0
 
