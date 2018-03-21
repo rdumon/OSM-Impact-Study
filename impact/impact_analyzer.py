@@ -473,7 +473,7 @@ def impact_import_creationtomaintenance_ratio_abnormal_return(db, googleDriveCon
 #=========================================================================================#
 #===Looking at evolution of the most edited amenity types per user for a certain period===#
 #=========================================================================================#
-def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_date,date_after, iMport, x=None, y=None, import_dir =''):
+def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_date,date_after, x=None, y=None, import_dir =''):
 
     #Dates computations
 
@@ -501,11 +501,10 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 
     refDict = build_dictionary_of_amenities()
     forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w", "name", "1", "4", "unclassified", "-1"}
-    absol_dict = get_amenities_top(db, iMport)
     groups = group_analyser(db, date_before, event_date, x, y)
 
 
-    top1 = list(absol_dict)[0]
+   
 
     dict1 = {}
     dict2 = {}
@@ -988,7 +987,7 @@ def top_import_amenity_abnormal_return(db,googleDriveConnection, date_before,eve
 #=======================#
 
 
-def survivalAnalysis(db,googleDriveConnection, date_before,event_date, iMport, x=None, y=None, import_dir =''):
+def survivalAnalysis(db,googleDriveConnection, date_before,event_date, x=None, y=None, import_dir =''):
     
     timeOfDeath = db.execute(["select MAX(max) as date, user_name from ((select user_name, max(created_at) from nodes group by user_name order by user_name) union all (select user_name, max(created_at) from ways group by user_name order by user_name) union all (select user_name, max(created_at) from relations group by user_name order by user_name)) as t group by user_name;"])
     # select date, count(user_name) from () as x group by date
