@@ -76,6 +76,7 @@ def draw_heatMap(db, googleDriveConnection, importInfo = [], x=None, y=None, cit
             retry = False
             py.image.save_as(fig, filename=dir_write_to['local']+'/import-'+city+'-'+date_convert.strftime('%Y-%m-%d')+'.png')
         except (Exception, plotly.exceptions.PlotlyRequestError) as error:
+            print(error)
             print('Plotly limit error... Don\'t care!')
             retry = True
             setPlotlyCredentials()
@@ -89,9 +90,9 @@ def draw_heatMap(db, googleDriveConnection, importInfo = [], x=None, y=None, cit
 # =============== Avoid plotly limitation ===============
 plotCred = [
     ['RomainDumon','cJVtOQ4pZHAaQcBeTULV'],
-    ['aoussbai','uWPqQZwnbe5MgCrfqk3V'],
+    ['aoussbai','SDJe7EFNlf9gXGfRQ8Ru'],
     ['JhumanJ','xUuKkx6qmi5j3E75OpgT'],
-    ['charlydes','6ufsK3cLlAp4DUzohtm8'], 
+    ['charlydes','6ufsK3cLlAp4DUzohtm8'],
     ['kristelle', 'SurOvd0IiMprlmA3k7rp']
 ]
 currentPlotlyAccount = 0

@@ -84,7 +84,7 @@ imports_normal = detectImport(db, city, x, y, folder_info_of_city, googleDriveCo
 # EXTRA INFORMATION FOR EACH IMPORT
 imports_normal_extra = imports_report(db, googleDriveConnection, imports_normal, folder_info_of_city)
 
-print("\n-------------Starting Impact Analysis (look Romain I fixed the typo)-------------\n")
+print("\n-------------Starting Impact Analysis-------------\n")
 
 # Analyse Import by Import
 for iMport in imports_normal_extra:

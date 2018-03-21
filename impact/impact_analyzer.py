@@ -1086,22 +1086,27 @@ def group_analyser(db, date_before, event_date , x = None, y = None):
 
     return groups
 
-def group_analyserv2(db, date_before, event_date , x = None, y = None):
-    # If there is a location restriction
-    where_clause = ' '
-    if x!=None and y!=None and len(x) == 2 and len(y) == 2:
-        where_clause += 'AND latitude > '+str(x[1])+' AND longitude > '+str(x[0])+' AND latitude < '+str(y[1])+' AND longitude < '+str(y[0])
-
+def group_analyserv2(db, date_before, event_date):
 
     #The number of weeks between event date and the date before the event
 
     #Average number of edits per user per week for the six months before
       #This query is location proof
-    expected_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d') + "' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
+    expected_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d')+"'  GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d') + "' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
 
     # a[0]: nb contrib/semaine
     # a[1]: user
 
+    # ======= Remove "virgin" user =======
+    #  Only applicable after 2007 as it's the creation date of OSM
+    if date_before > datetime.datetime.strptime('2008-01-01', '%Y-%m-%d'):
+        print("Checking for new users to remove...")
+        for user in expected_per_user:
+            virgin_query = "SELECT min(created_at) from (select user_name,to_char(min(created_at),'YYYYMMDD') as created_at from nodes  where user_name = '"+user[1]+"' group by user_name  UNION ALL select user_name, to_char(min(created_at),'YYYYMMDD') as created_at from ways where user_name = '"+user[1]+"' group by user_name) as A group by user_name"
+            birthdate = db.execute([virgin_query])
+            if birthdate and birthdate[0] and birthdate[0][0] and date_before < datetime.datetime.strptime(birthdate[0][0], '%Y%m%d'):
+                print(user[1]+ ': ' +str(birthdate[0][0] +" is a virgin ... "+ str(date_before.strftime('%Y-%m-%d')) ) )
+                expected_per_user.remove(user)
     # Divides the expected user in 5 groups
     groups = [[],[],[],[],[]]
 
@@ -1114,19 +1119,12 @@ def group_analyserv2(db, date_before, event_date , x = None, y = None):
     threshold = []
     diff = total_contributions /5
 
-    # By even thresholds
-    # for x in range(0,5):
-    #     if x == 4:
-    #         threshold.append(total_contributions)
-    #         break
-    #     threshold.append(diff*(x+1))
-
-    # ========BY percentage =============
-    threshold.append(decimal.Decimal(0.1)*total_contributions)
-    threshold.append(decimal.Decimal(0.25)*total_contributions)
-    threshold.append(decimal.Decimal(0.45)*total_contributions)
-    threshold.append(decimal.Decimal(0.70)*total_contributions)
+    # ======== BY percentage =============
     threshold.append(total_contributions)
+    threshold.append(decimal.Decimal(0.90)*total_contributions)
+    threshold.append(decimal.Decimal(0.75)*total_contributions)
+    threshold.append(decimal.Decimal(0.55)*total_contributions)
+    threshold.append(decimal.Decimal(0.30)*total_contributions)
 
     expected_per_user.sort(key= lambda x : int (x[0]))
 
@@ -1137,27 +1135,12 @@ def group_analyserv2(db, date_before, event_date , x = None, y = None):
         groups[4-index].append(expected_per_user[user_counter][1])
         current_sum += expected_per_user[user_counter][0]
         user_counter-=1
-        while current_sum <= threshold[4-index]:
+        while current_sum < threshold[4-index]:
             groups[4-index].append(expected_per_user[user_counter][1])
             current_sum += expected_per_user[user_counter][0]
             user_counter-=1
 
     print(groups)
-
-    #sys.exit(-1)
-    # for a in expected_per_user:
-    #     current_sum += a[0]
-    #     for index in range(0,5):
-    #         if current_sum <= threshold[index]:
-    #             groups[index].append(a[1])
-    #             break
-
-
-    total_2 = 0
-    for group in groups:
-        for user in group:
-            total_2 += 1
-        total_2 = 0
 
     return groups
 
@@ -1187,133 +1170,132 @@ def trim_95Perc_rule(data):
 # ============================SURVIVAL ANALYSIS==================================================
 # ===============================================================================================
 
-def survivalAnalysis(db,googleDriveConnection, groups, date_before, event_date, date_after):
-	timeOfDeath = db.execute(["select MAX(max) as date, user_name from ((select user_name, max(created_at) from nodes group by user_name order by user_name) union all (select user_name, max(created_at) from ways group by user_name order by user_name) union all (select user_name, max(created_at) from relations group by user_name order by user_name)) as t group by user_name;"])
-	# select date, count(user_name) from () as x group by date
+def survivalAnalysis(db,googleDriveConnection, groups, date_before, event_date, import_dir):
+    timeOfDeath = db.execute(["select MAX(max) as date, user_name from ((select user_name, max(created_at) from nodes group by user_name order by user_name) union all (select user_name, max(created_at) from ways group by user_name order by user_name) union all (select user_name, max(created_at) from relations group by user_name order by user_name)) as t group by user_name;"])
+    # select date, count(user_name) from () as x group by date
 
-	users = []
-	time = []
-	print(date_before)
-	print(event_date)
-	timeOfDeath.sort()
+    users = []
+    time = []
 
-	for (x,y) in timeOfDeath:
-		time.append(x)
-		users.append(y)
+    timeOfDeath.sort()
 
-	resultByGroups = [[[]],[[]],[[]],[[]],[[]]]
-	counter = 0
-	finalTimes = [[],[],[],[],[]]
-	finalIndex = 0
-	finalCounts = []
-	index = [0,0,0,0,0]
-	previousDateIndex = [0,0,0,0,0]
-	group = 0
-	groupAssigned = False
-	isFirst = [True, True, True, True, True]
-	time.sort()
+    for (x,y) in timeOfDeath:
+        time.append(x)
+        users.append(y)
 
-	for i in timeOfDeath:
-		if time[counter].date() >= date_before.date():
-			if users[counter] in groups[0]:
-				group = 0
-				groupAssigned = True
-			if users[counter] in groups[1]:
-				group = 1
-				groupAssigned = True
-			if users[counter] in groups[2]:
-				group = 2
-				groupAssigned = True
-			if users[counter] in groups[3]:
-				group = 3
-				groupAssigned = True
-			if users[counter] in groups[4]:
-				group = 4
-				groupAssigned = True
+    resultByGroups = [[[]],[[]],[[]],[[]],[[]]]
+    counter = 0
+    finalTimes = [[],[],[],[],[]]
+    finalIndex = 0
+    finalCounts = []
+    index = [0,0,0,0,0]
+    previousDateIndex = [0,0,0,0,0]
+    group = 0
+    groupAssigned = False
+    isFirst = [True, True, True, True, True]
+    time.sort()
 
-			if groupAssigned == True:
-				if isFirst[group] == True:
-					previousDateIndex[group] = counter
-					isFirst[group] = False
+    for i in timeOfDeath:
+        if time[counter].date() >= date_before.date():
+            if users[counter] in groups[0]:
+                group = 0
+                groupAssigned = True
+            if users[counter] in groups[1]:
+                group = 1
+                groupAssigned = True
+            if users[counter] in groups[2]:
+                group = 2
+                groupAssigned = True
+            if users[counter] in groups[3]:
+                group = 3
+                groupAssigned = True
+            if users[counter] in groups[4]:
+                group = 4
+                groupAssigned = True
 
-				if time[previousDateIndex[group]].date() != time[counter].date():
-					finalTimes[group].append(time[previousDateIndex[group]].date())
-					index[group] += 1
-					resultByGroups[group].append([])
-				previousDateIndex[group] = counter
-				resultByGroups[group][index[group]].append(users[counter])
-		groupAssigned = False
-		counter += 1
+            if groupAssigned == True:
+                if isFirst[group] == True:
+                    previousDateIndex[group] = counter
+                    isFirst[group] = False
 
-	totalUsers = []
+                if time[previousDateIndex[group]].date() != time[counter].date():
+                    finalTimes[group].append(time[previousDateIndex[group]].date())
+                    index[group] += 1
+                    resultByGroups[group].append([])
+                previousDateIndex[group] = counter
+                resultByGroups[group][index[group]].append(users[counter])
+        groupAssigned = False
+        counter += 1
 
-	totalDeathsByDay = [[],[],[],[],[]]
+    totalUsers = []
 
-	for i in range(0,5):
-		for array in resultByGroups[i]:
-			totalDeathsByDay[i].append(len(array))
+    totalDeathsByDay = [[],[],[],[],[]]
 
-	for i in range(0,5):
-		totalUsers.append(len(groups[i]))
+    for i in range(0,5):
+        for array in resultByGroups[i]:
+            totalDeathsByDay[i].append(len(array))
 
-
-
-	activeUsers = [[],[],[],[],[]]
-
-	for i in range(0,5):
-		for j in totalDeathsByDay[i]:
-			activeUsers[i].append(totalUsers[i])
-			totalUsers[i] -= j
+    for i in range(0,5):
+        totalUsers.append(len(groups[i]))
 
 
 
-	trace1 = go.Scatter(
+    activeUsers = [[],[],[],[],[]]
+
+    for i in range(0,5):
+        for j in totalDeathsByDay[i]:
+            activeUsers[i].append(totalUsers[i])
+            totalUsers[i] -= j
+
+
+
+    trace1 = go.Scatter(
     x = finalTimes[0],
     y = activeUsers[0],
     name= "Group 0"
-	)
-	trace2 = go.Scatter(
+    )
+    trace2 = go.Scatter(
     x = finalTimes[1],
     y = activeUsers[1],
     name= "Group 1"
-	)
-	trace3 = go.Scatter(
+    )
+    trace3 = go.Scatter(
     x = finalTimes[2],
     y = activeUsers[2],
     name= "Group 2"
-	)
-	trace4 = go.Scatter(
+    )
+    trace4 = go.Scatter(
     x = finalTimes[3],
     y = activeUsers[3],
     name= "Group 3"
-	)
-	trace5 = go.Scatter(
+    )
+    trace5 = go.Scatter(
     x = finalTimes[4],
     y = activeUsers[4],
     name= "Group 4"
-	)
-	layout = {
-	    'shapes': [
-	        # Line Vertical
-	        {
-	            'type': 'line',
-	            'x0': event_date,
-	            'y0': 0,
-	            'x1': event_date,
-	            'y1': len(groups[0]),
-	            'line': {
-	                'color': 'rgb(55, 128, 191)',
-	                'width': 3,
-	            },
-	        }
-	    ]
-	}
+    )
+    layout = {
+        'shapes': [
+            # Line Vertical
+            {
+                'type': 'line',
+                'x0': event_date,
+                'y0': 0,
+                'x1': event_date,
+                'y1': len(groups[0]),
+                'line': {
+                    'color': 'rgb(55, 128, 191)',
+                    'width': 3,
+                },
+            }
+        ]
+    }
 
-	data = [ trace1 ,trace2, trace3, trace4, trace5]
-	fig = {
-	    'data': data,
-	    'layout': layout,
-	}
+    data = [ trace1 ,trace2, trace3, trace4, trace5]
+    fig = {
+        'data': data,
+        'layout': layout,
+    }
 
     # # SAVE LOCALLY
     setPlotlyCredentials()
@@ -1323,6 +1305,7 @@ def survivalAnalysis(db,googleDriveConnection, groups, date_before, event_date, 
             retry = False
             py.image.save_as(fig, filename=import_dir['local']+'/survival analysis'+event_date.strftime('%Y-%m-%d')+'.png')
         except (Exception, plotly.exceptions.PlotlyRequestError) as error:
+            print(error)
             print('Plotly limit error... Don\'t care!')
             retry = True
             setPlotlyCredentials()
@@ -1346,7 +1329,9 @@ plotCred = [
     ['aoussbai','jWkPjojJV8vrsSDbeU8J'],
     ['JhumanJ','xUuKkx6qmi5j3E75OpgT'],
     ['charlydes','6ufsK3cLlAp4DUzohtm8'],
-    ['kristelle', 'SurOvd0IiMprlmA3k7rp']
+    ['kristelle', 'SurOvd0IiMprlmA3k7rp'],
+    ['romainsucks','sC8LSr0iAnhPI9UN7IF2'],
+    ['xoxoxo','9VKWcbRwovu04Y0E0mA7']
 ]
 currentPlotlyAccount = 0
 
