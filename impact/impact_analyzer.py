@@ -1180,7 +1180,7 @@ def trim_95Perc_rule(data):
 # ============================SURVIVAL ANALYSIS==================================================
 # ===============================================================================================
 
-def survivalAnalysis(db,googleDriveConnection, groups, date_before, event_date, date_after):
+def survivalAnalysis(db,googleDriveConnection, groups, date_before, event_date):
 	timeOfDeath = db.execute(["select MAX(max) as date, user_name from ((select user_name, max(created_at) from nodes group by user_name order by user_name) union all (select user_name, max(created_at) from ways group by user_name order by user_name) union all (select user_name, max(created_at) from relations group by user_name order by user_name)) as t group by user_name;"])
 	# select date, count(user_name) from () as x group by date
 
