@@ -32,7 +32,7 @@ def analyse_import(db, googleDriveConnection, iMport, x = None, y = None, city =
 	groups = group_analyserv2(db, import_date-relativedelta(months=+6), import_date, x, y)
 
 	print(groups)
-	sys.exit(-1)
+	#sys.exit(-1)
 	# # FOR EACH ANALYSIS WE WANT TO LOOK AT impact afer 1 week, 1 month, 3 month
 	time_intervals = [import_date+relativedelta(weeks=+1), import_date+relativedelta(months=+1), import_date+relativedelta(months=+3)]
 
@@ -59,6 +59,7 @@ def analyse_import(db, googleDriveConnection, iMport, x = None, y = None, city =
 	# # AMENITY EVOLUTION PER GROUP
 	# # 1 week, 1 month, 3 month
 	for date_after in time_intervals:
+		top_amenity_evolution_per_group(db,googleDriveConnection, import_date-relativedelta(months=+6),import_date,date_after, iMport, x, y, import_dir)
 		top_import_amenity_abnormal_return(db,googleDriveConnection, import_date-relativedelta(months=+6),import_date,date_after, iMport, x, y, import_dir)
 
 	# # SURVIVAL ANALISIS
