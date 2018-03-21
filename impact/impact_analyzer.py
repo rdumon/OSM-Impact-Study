@@ -681,10 +681,17 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
     layout12 = go.Layout(barmode='group', title= 'top_amenity_focus_after')
     fig12 = go.Figure(data=data12, layout=layout12)
 
-
-
     # # SAVE LOCALLY
-    py.image.save_as(fig1, filename=import_dir['local']+'/top_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png')
+    setPlotlyCredentials()
+    retry = True
+    while retry:
+        try:
+            retry = False
+            py.image.save_as(fig1, filename=import_dir['local']+'/top_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png')
+        except (Exception, plotly.exceptions.PlotlyRequestError) as error:
+            print('Plotly limit error... Don\'t care!')
+            retry = True
+            setPlotlyCredentials()
 
     # # UPLOAD TO GOOGLE DRIVE
     filename = 'top_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png'
@@ -693,7 +700,16 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
 
 
     # # SAVE LOCALLY
-    py.image.save_as(fig12, filename=import_dir['local']+'/top_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png')
+    setPlotlyCredentials()
+    retry = True
+    while retry:
+        try:
+            retry = False
+            py.image.save_as(fig12, filename=import_dir['local']+'/top_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png')
+        except (Exception, plotly.exceptions.PlotlyRequestError) as error:
+            print('Plotly limit error... Don\'t care!')
+            retry = True
+            setPlotlyCredentials()
 
     # # UPLOAD TO GOOGLE DRIVE
     filename = 'top_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png'
@@ -961,14 +977,20 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
     data2 = [group_12,group_22,group_32,group_42,group_52]
     fig2 = dict(data = data2, layout = layout2)
 
-    # py.plot(data,filename='box-plots osm London month')
-
-
-
+    # py.plot(data,filename='box-plots osm London month'
 
 
     # # SAVE LOCALLY
-    py.image.save_as(fig, filename=import_dir['local']+'/import_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png')
+    setPlotlyCredentials()
+    retry = True
+    while retry:
+        try:
+            retry = False
+            py.image.save_as(fig, filename=import_dir['local']+'/import_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png')
+        except (Exception, plotly.exceptions.PlotlyRequestError) as error:
+            print('Plotly limit error... Don\'t care!')
+            retry = True
+            setPlotlyCredentials()
 
     # # UPLOAD TO GOOGLE DRIVE
     filename = 'import_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png'
@@ -977,167 +999,21 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
 
 
     # # SAVE LOCALLY
-    py.image.save_as(fig2, filename=import_dir['local']+'/import_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png')
-
-    # # UPLOAD TO GOOGLE DRIVE
-    filename = 'import_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png'
-    filelocation = import_dir['local']+'/import_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png'
-    googleDriveConnection.upload_GoogleDrive(filename,filelocation, import_dir['google'])
-
-
-#=======================#
-#===Survival analysis===#
-#=======================#
-
-
-
-def survivalAnalysis(groups, db,googleDriveConnection, date_before,event_date, x=None, y=None, import_dir =''):
-
-
-    timeOfDeath = db.execute(["select MAX(max) as date, user_name from ((select user_name, max(created_at) from nodes group by user_name order by user_name) union all (select user_name, max(created_at) from ways group by user_name order by user_name)) as t group by user_name;"])
-    # select date, count(user_name) from () as x group by date
-
-    users = []
-    time = []
-    timeOfDeath.sort()
-
-    for (x,y) in timeOfDeath:
-        time.append(x)
-        users.append(y)
-
-    resultByGroups = [[[]],[[]],[[]],[[]],[[]]]
-    counter = 0
-    finalTimes = [[],[],[],[],[]]
-    finalIndex = 0
-    finalCounts = []
-    index = [0,0,0,0,0]
-    previousDateIndex = [0,0,0,0,0]
-    group = 0
-    groupAssigned = False
-    isFirst = [True, True, True, True, True]
-    time.sort()
-    for i in timeOfDeath:
-        if time[counter].date() >= date_before.date():
-            if users[counter] in groups[0]:
-                group = 0
-                groupAssigned = True
-            if users[counter] in groups[1]:
-                group = 1
-                groupAssigned = True
-            if users[counter] in groups[2]:
-                group = 2
-                groupAssigned = True
-            if users[counter] in groups[3]:
-                group = 3
-                groupAssigned = True
-            if users[counter] in groups[4]:
-                group = 4
-                groupAssigned = True
-
-            if groupAssigned == True:
-                if isFirst[group] == True:
-                    previousDateIndex[group] = counter
-                    isFirst[group] = False
-
-                if time[previousDateIndex[group]].date() != time[counter].date():
-                    finalTimes[group].append(time[previousDateIndex[group]].date())
-                    index[group] += 1
-                    resultByGroups[group].append([])
-                previousDateIndex[group] = counter
-                resultByGroups[group][index[group]].append(users[counter])
-        groupAssigned = False
-        counter += 1
-
-
-
-    totalUsers = []
-
-    totalDeathsByDay = [[],[],[],[],[]]
-
-    for i in range(0,5):
-        for array in resultByGroups[i]:
-            totalDeathsByDay[i].append(len(array))
-
-    for i in range(0,5):
-        totalUsers.append(len(groups[i]))
-
-
-
-    activeUsers = [[],[],[],[],[]]
-
-    for i in range(0,5):
-        for j in totalDeathsByDay[i]:
-            activeUsers[i].append(totalUsers[i])
-            totalUsers[i] -= j
-
-
-
-    trace1 = go.Scatter(
-    x = finalTimes[0],
-    y = activeUsers[0],
-    name= "Group 1"
-    )
-    trace2 = go.Scatter(
-    x = finalTimes[1],
-    y = activeUsers[1],
-    name= "Group 2"
-    )
-    trace3 = go.Scatter(
-    x = finalTimes[2],
-    y = activeUsers[2],
-    name= "Group 3"
-    )
-    trace4 = go.Scatter(
-    x = finalTimes[3],
-    y = activeUsers[3],
-    name= "Group 4"
-    )
-    trace5 = go.Scatter(
-    x = finalTimes[4],
-    y = activeUsers[4],
-    name= "Group 5"
-    )
-    layout = {
-        'shapes': [
-            # Line Vertical
-            {
-                'type': 'line',
-                'x0': event_date,
-                'y0': 0,
-                'x1': event_date,
-                'y1': len(groups[0]),
-                'line': {
-                    'color': 'rgb(55, 128, 191)',
-                    'width': 3,
-                },
-            }
-        ], 'title': "survival analysis"
-
-    }
-
-    data = [ trace1 ,trace2, trace3, trace4, trace5]
-    fig = {
-        'data': data,
-        'layout': layout,
-    }
-
-    # # SAVE LOCALLY
     setPlotlyCredentials()
     retry = True
     while retry:
         try:
             retry = False
-            py.image.save_as(fig, filename=import_dir['local']+'/survival analysis'+event_date.strftime('%Y-%m-%d')+'.png')
+            py.image.save_as(fig2, filename=import_dir['local']+'/import_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png')
         except (Exception, plotly.exceptions.PlotlyRequestError) as error:
             print('Plotly limit error... Don\'t care!')
             retry = True
             setPlotlyCredentials()
 
     # # UPLOAD TO GOOGLE DRIVE
-    filename = 'survival analysis'+event_date.strftime('%Y-%m-%d')+'.png'
-    filelocation = import_dir['local']+'/survival analysis'+event_date.strftime('%Y-%m-%d')+'.png'
+    filename = 'import_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png'
+    filelocation = import_dir['local']+'/import_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png'
     googleDriveConnection.upload_GoogleDrive(filename,filelocation, import_dir['google'])
-
 
 
 #-----------------------------------------------------------------------------------------------------------------------------
@@ -1307,6 +1183,154 @@ def trim_95Perc_rule(data):
 
     return data
 
+# ===============================================================================================
+# ============================SURVIVAL ANALYSIS==================================================
+# ===============================================================================================
+
+def survivalAnalysis(db,googleDriveConnection, groups, date_before, event_date, date_after):
+	timeOfDeath = db.execute(["select MAX(max) as date, user_name from ((select user_name, max(created_at) from nodes group by user_name order by user_name) union all (select user_name, max(created_at) from ways group by user_name order by user_name) union all (select user_name, max(created_at) from relations group by user_name order by user_name)) as t group by user_name;"])
+	# select date, count(user_name) from () as x group by date
+
+	users = []
+	time = []
+	print(date_before)
+	print(event_date)
+	timeOfDeath.sort()
+
+	for (x,y) in timeOfDeath:
+		time.append(x)
+		users.append(y)
+
+	resultByGroups = [[[]],[[]],[[]],[[]],[[]]]
+	counter = 0
+	finalTimes = [[],[],[],[],[]]
+	finalIndex = 0
+	finalCounts = []
+	index = [0,0,0,0,0]
+	previousDateIndex = [0,0,0,0,0]
+	group = 0
+	groupAssigned = False
+	isFirst = [True, True, True, True, True]
+	time.sort()
+
+	for i in timeOfDeath:
+		if time[counter].date() >= date_before.date():
+			if users[counter] in groups[0]:
+				group = 0
+				groupAssigned = True
+			if users[counter] in groups[1]:
+				group = 1
+				groupAssigned = True
+			if users[counter] in groups[2]:
+				group = 2
+				groupAssigned = True
+			if users[counter] in groups[3]:
+				group = 3
+				groupAssigned = True
+			if users[counter] in groups[4]:
+				group = 4
+				groupAssigned = True
+
+			if groupAssigned == True:
+				if isFirst[group] == True:
+					previousDateIndex[group] = counter
+					isFirst[group] = False
+
+				if time[previousDateIndex[group]].date() != time[counter].date():
+					finalTimes[group].append(time[previousDateIndex[group]].date())
+					index[group] += 1
+					resultByGroups[group].append([])
+				previousDateIndex[group] = counter
+				resultByGroups[group][index[group]].append(users[counter])
+		groupAssigned = False
+		counter += 1
+
+	totalUsers = []
+
+	totalDeathsByDay = [[],[],[],[],[]]
+
+	for i in range(0,5):
+		for array in resultByGroups[i]:
+			totalDeathsByDay[i].append(len(array))
+
+	for i in range(0,5):
+		totalUsers.append(len(groups[i]))
+
+
+
+	activeUsers = [[],[],[],[],[]]
+
+	for i in range(0,5):
+		for j in totalDeathsByDay[i]:
+			activeUsers[i].append(totalUsers[i])
+			totalUsers[i] -= j
+
+
+
+	trace1 = go.Scatter(
+    x = finalTimes[0],
+    y = activeUsers[0],
+    name= "Group 0"
+	)
+	trace2 = go.Scatter(
+    x = finalTimes[1],
+    y = activeUsers[1],
+    name= "Group 1"
+	)
+	trace3 = go.Scatter(
+    x = finalTimes[2],
+    y = activeUsers[2],
+    name= "Group 2"
+	)
+	trace4 = go.Scatter(
+    x = finalTimes[3],
+    y = activeUsers[3],
+    name= "Group 3"
+	)
+	trace5 = go.Scatter(
+    x = finalTimes[4],
+    y = activeUsers[4],
+    name= "Group 4"
+	)
+	layout = {
+	    'shapes': [
+	        # Line Vertical
+	        {
+	            'type': 'line',
+	            'x0': event_date,
+	            'y0': 0,
+	            'x1': event_date,
+	            'y1': len(groups[0]),
+	            'line': {
+	                'color': 'rgb(55, 128, 191)',
+	                'width': 3,
+	            },
+	        }
+	    ]
+	}
+
+	data = [ trace1 ,trace2, trace3, trace4, trace5]
+	fig = {
+	    'data': data,
+	    'layout': layout,
+	}
+
+    # # SAVE LOCALLY
+    setPlotlyCredentials()
+    retry = True
+    while retry:
+        try:
+            retry = False
+            py.image.save_as(fig, filename=import_dir['local']+'/survival analysis'+event_date.strftime('%Y-%m-%d')+'.png')
+        except (Exception, plotly.exceptions.PlotlyRequestError) as error:
+            print('Plotly limit error... Don\'t care!')
+            retry = True
+            setPlotlyCredentials()
+
+    # # UPLOAD TO GOOGLE DRIVE
+    filename = 'survival analysis'+event_date.strftime('%Y-%m-%d')+'.png'
+    filelocation = import_dir['local']+'/survival analysis'+event_date.strftime('%Y-%m-%d')+'.png'
+    googleDriveConnection.upload_GoogleDrive(filename,filelocation, import_dir['google'])
 
 #================================================================================================
 #================================RANGE FINDER====================================================
