@@ -7,7 +7,7 @@ import plotly.plotly as py
 import plotly.graph_objs as go
 import operator
 import numpy as np
-plotly.tools.set_credentials_file(username='RomainDumon', api_key='cJVtOQ4pZHAaQcBeTULV')
+plotly.tools.set_credentials_file(username='aoussbai', api_key='jWkPjojJV8vrsSDbeU8J')
 sys.path.insert(0, '../import_detection/')
 from import_detection.detector import *
 
@@ -882,8 +882,6 @@ def top_import_amenity_abnormal_return(db,googleDriveConnection, date_before,eve
 
 
 
-#=======================this is working but does not handle empty sequence for min and max settings=============================
-
     group_1 = go.Box(
             y=trim_95Perc_rule(dataAbnormal[0]),
             name = 'Group 1',
@@ -985,8 +983,149 @@ def top_import_amenity_abnormal_return(db,googleDriveConnection, date_before,eve
     googleDriveConnection.upload_GoogleDrive(filename,filelocation, import_dir['google'])
 
 
+#=======================#
+#===Survival analysis===#
+#=======================#
 
-    #=======================this is working but does not handle empty sequence for min and max settings=============================
+
+def survivalAnalysis(db,googleDriveConnection, date_before,event_date, iMport, x=None, y=None, import_dir =''):
+    
+    timeOfDeath = db.execute(["select MAX(max) as date, user_name from ((select user_name, max(created_at) from nodes group by user_name order by user_name) union all (select user_name, max(created_at) from ways group by user_name order by user_name) union all (select user_name, max(created_at) from relations group by user_name order by user_name)) as t group by user_name;"])
+    # select date, count(user_name) from () as x group by date
+    # print(timeOfDeath)
+    groups = group_analyser(db, date_before, event_date, x=None, y=None)
+    # print(len(groups))
+    users = []
+    time = []
+    timeOfDeath.sort()
+
+    for (x,y) in timeOfDeath:
+        time.append(x)
+        users.append(y)
+
+    resultByGroups = [[[]],[[]],[[]],[[]],[[]]]
+    counter = 0
+    finalTimes = [[],[],[],[],[]]
+    finalIndex = 0
+    finalCounts = []
+    index = [0,0,0,0,0]
+    previousDateIndex = [0,0,0,0,0]
+    group = 0
+    groupAssigned = False
+    isFirst = [True, True, True, True, True]
+    time.sort()
+    for i in timeOfDeath:
+        if time[counter].date() >= date_before.date():
+            if users[counter] in groups[0]:
+                group = 0
+                groupAssigned = True
+            if users[counter] in groups[1]:
+                group = 1
+                groupAssigned = True
+            if users[counter] in groups[2]:
+                group = 2
+                groupAssigned = True
+            if users[counter] in groups[3]:
+                group = 3
+                groupAssigned = True
+            if users[counter] in groups[4]:
+                group = 4
+                groupAssigned = True
+
+            if groupAssigned == True:
+                if isFirst[group] == True:
+                    previousDateIndex[group] = counter
+                    isFirst[group] = False
+
+                if time[previousDateIndex[group]].date() != time[counter].date():
+                    finalTimes[group].append(time[previousDateIndex[group]].date())
+                    index[group] += 1
+                    resultByGroups[group].append([])
+                previousDateIndex[group] = counter  
+                resultByGroups[group][index[group]].append(users[counter])
+        groupAssigned = False
+        counter += 1
+
+       
+            
+    totalUsers = []
+
+    totalDeathsByDay = [[],[],[],[],[]]
+
+    for i in range(0,5):
+        for array in resultByGroups[i]:
+            totalDeathsByDay[i].append(len(array))
+
+    for i in range(0,5):
+        totalUsers.append(len(groups[i]))
+
+
+
+    activeUsers = [[],[],[],[],[]]
+    
+    for i in range(0,5):
+        for j in totalDeathsByDay[i]:
+            activeUsers[i].append(totalUsers[i])
+            totalUsers[i] -= j
+
+
+    
+    trace1 = go.Scatter(
+    x = finalTimes[0],
+    y = activeUsers[0],
+    name= "Group 1"
+    )
+    trace2 = go.Scatter(
+    x = finalTimes[1],
+    y = activeUsers[1],
+    name= "Group 2"
+    )
+    trace3 = go.Scatter(
+    x = finalTimes[2],
+    y = activeUsers[2],
+    name= "Group 3"
+    )
+    trace4 = go.Scatter(
+    x = finalTimes[3],
+    y = activeUsers[3],
+    name= "Group 4"
+    )
+    trace5 = go.Scatter(
+    x = finalTimes[4],
+    y = activeUsers[4],
+    name= "Group 5"
+    )
+    layout = {
+        'shapes': [
+            # Line Vertical
+            {
+                'type': 'line',
+                'x0': event_date,
+                'y0': 0,
+                'x1': event_date,
+                'y1': len(groups[0]),
+                'line': {
+                    'color': 'rgb(55, 128, 191)',
+                    'width': 3,
+                },
+            }
+        ], 'title': "survival analysis" 
+
+    }
+
+    data = [ trace1 ,trace2, trace3, trace4, trace5]
+    fig = {
+        'data': data,
+        'layout': layout,
+    }
+    
+     # # SAVE LOCALLY
+    py.image.save_as(fig, filename=import_dir['local']+'/survival analysis'+event_date.strftime('%Y-%m-%d')+'.png')
+
+    # # UPLOAD TO GOOGLE DRIVE
+    filename = 'survival analysis'+event_date.strftime('%Y-%m-%d')+'.png'
+    filelocation = import_dir['local']+'/survival analysis'+event_date.strftime('%Y-%m-%d')+'.png'
+    googleDriveConnection.upload_GoogleDrive(filename,filelocation, import_dir['google'])
 
 
 
@@ -1118,7 +1257,7 @@ def group_analyserv2(db, date_before, event_date , x = None, y = None):
 
     print(groups)
 
-    sys.exit(-1)
+    #sys.exit(-1)
     # for a in expected_per_user:
     #     current_sum += a[0]
     #     for index in range(0,5):
