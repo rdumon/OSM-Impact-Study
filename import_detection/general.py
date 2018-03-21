@@ -51,10 +51,19 @@ def analyse_import(db, googleDriveConnection, iMport, x = None, y = None, city =
 
 	# # # AMENITY EVOLUTION PER GROUP
 	# # # 1 week, 1 month, 3 month
+
 	for date_after in time_intervals:
-	 	top_amenity_evolution_per_group(db,googleDriveConnection, import_date-relativedelta(months=+6),import_date,date_after, x, y, import_dir)
-		top_import_amenity_abnormal_return(db,googleDriveConnection, import_date-relativedelta(months=+6),import_date,date_after, iMport, x, y, import_dir)
+	 	top_amenity_evolution_per_group(groups, db,googleDriveConnection, import_date-relativedelta(months=+6),import_date,date_after, x, y, import_dir)
+		top_import_amenity_abnormal_return(groups, db,googleDriveConnection, import_date-relativedelta(months=+6),import_date,date_after, iMport, x, y, import_dir)
 
 	# # SURVIVAL ANALYSIS
 	# # 1 week, 1 month, 3 months
-	survivalAnalysis(db,googleDriveConnection, groups, import_date-relativedelta(months=+6),import_date, x, y, import_dir)
+
+	survivalAnalysis(groups, db,googleDriveConnection, import_date-relativedelta(months=+6),import_date, x, y, import_dir)
+
+
+
+
+	#Keeping track of each graph ids and their corresponding imports (look into tacking screenshots for each graph we produce)
+	#Compare to well chosen Control Groups !!!!!!!!!!!!
+	#this function should return information helping us decipher quickly what graphs correspond to which imports

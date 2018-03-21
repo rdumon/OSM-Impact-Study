@@ -64,7 +64,7 @@ def abnormal_return_for_group(db, googleDriveConnection, groups, date_before, ev
 
     #Average number of edits per user per week for the six months before
       #This query is location proof
-    expected_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d') + "' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT (SUM(contributions)/"+str(diff_expected_user)+") as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
+    expected_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d')+"'"+ where_clause + " GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT (SUM(contributions)/"+str(diff_expected_user)+") as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
 
     expected = {}
 
@@ -73,7 +73,7 @@ def abnormal_return_for_group(db, googleDriveConnection, groups, date_before, ev
 
     #query average contribution for each user in each group
     actual_one_month = {}
-    actual_per_user_one_month = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at > '" + event_date.strftime('%Y-%m-%d') + "' AND created_at < '" + date_after.strftime('%Y-%m-%d') +"'"+ where_clause + " GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at > '" + event_date.strftime('%Y-%m-%d') + "' AND created_at < '" + date_after.strftime('%Y-%m-%d') + "' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at > '" + event_date.strftime('%Y-%m-%d') + "' AND created_at < '" + date_after.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT (SUM(contributions)/"+str(diff_actual_user)+") as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
+    actual_per_user_one_month = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at > '" + event_date.strftime('%Y-%m-%d') + "' AND created_at < '" + date_after.strftime('%Y-%m-%d') +"'"+ where_clause + " GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at > '" + event_date.strftime('%Y-%m-%d') + "' AND created_at < '" + date_after.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT (SUM(contributions)/"+str(diff_actual_user)+") as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
     for a in actual_per_user_one_month:
         actual_one_month[a[1]] = a[0]
 
@@ -179,7 +179,7 @@ def abnormal_return_for_group(db, googleDriveConnection, groups, date_before, ev
 def contribution_types_gobal_analysis(db, googleDriveConnection, date_before,event_date,date_after, x=None, y=None, dir_write_to = None):
 
     #work out evolution of delete contributions
-    delete_per_day = db.execute(["with C as((SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM nodes WHERE  created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after.strftime('%Y-%m-%d')+"'"+ " AND deleted = true GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM ways WHERE  created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after.strftime('%Y-%m-%d')+"'"+ " AND deleted = true GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM relations WHERE  created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after.strftime('%Y-%m-%d')+"'"+ " AND deleted = true GROUP BY created_at)) SELECT created_at,SUM(contrib_deletion) as sum_contrib_deletion FROM C GROUP BY created_at ORDER BY created_at" ])
+    delete_per_day = db.execute(["with C as((SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM nodes WHERE  created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after.strftime('%Y-%m-%d')+"'"+ " AND deleted = true GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM ways WHERE  created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after.strftime('%Y-%m-%d')+"'"+ " AND deleted = true GROUP BY created_at)) SELECT created_at,SUM(contrib_deletion) as sum_contrib_deletion FROM C GROUP BY created_at ORDER BY created_at" ])
 
     # TODO
     delete_per_day_x = []
@@ -190,7 +190,7 @@ def contribution_types_gobal_analysis(db, googleDriveConnection, date_before,eve
 
 
     #work out evolution of creation contributions
-    creation_per_day = db.execute(["with C as((SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM nodes WHERE  created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after.strftime('%Y-%m-%d')+"'"+ " AND version = 1 GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM ways WHERE  created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after.strftime('%Y-%m-%d')+"'"+ " AND version = 1 GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM relations WHERE  created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after.strftime('%Y-%m-%d')+"'"+ " AND version = 1 GROUP BY created_at)) SELECT created_at,SUM(contrib_deletion) as sum_contrib_deletion FROM C GROUP BY created_at ORDER BY created_at" ])
+    creation_per_day = db.execute(["with C as((SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM nodes WHERE  created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after.strftime('%Y-%m-%d')+"'"+ " AND version = 1 GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM ways WHERE  created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after.strftime('%Y-%m-%d')+"'"+ " AND version = 1 GROUP BY created_at)) SELECT created_at,SUM(contrib_deletion) as sum_contrib_deletion FROM C GROUP BY created_at ORDER BY created_at" ])
 
     creation_per_day_x = []
     creation_per_day_y = []
@@ -199,7 +199,7 @@ def contribution_types_gobal_analysis(db, googleDriveConnection, date_before,eve
         creation_per_day_y.append(a[1])
 
     # #work out evolution of edits contributions
-    edits_per_day = db.execute(["with C as((SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM nodes WHERE  created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after.strftime('%Y-%m-%d')+"'"+ " AND deleted = false AND version != 1 GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM ways WHERE  created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after.strftime('%Y-%m-%d')+"'"+ " AND deleted = false AND version != 1 GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM relations WHERE  created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after.strftime('%Y-%m-%d')+"'"+ " AND deleted = false AND version != 1 GROUP BY created_at)) SELECT created_at,SUM(contrib_deletion) as sum_contrib_deletion FROM C GROUP BY created_at ORDER BY created_at" ])
+    edits_per_day = db.execute(["with C as((SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM nodes WHERE  created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after.strftime('%Y-%m-%d')+"'"+ " AND deleted = false AND version != 1 GROUP BY created_at) UNION ALL (SELECT to_char(created_at,\'YYYYMMDD\') as created_at,count(*) as contrib_deletion FROM ways WHERE  created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at <= '" + date_after.strftime('%Y-%m-%d')+"'"+ " AND deleted = false AND version != 1 GROUP BY created_at)) SELECT created_at,SUM(contrib_deletion) as sum_contrib_deletion FROM C GROUP BY created_at ORDER BY created_at" ])
 
     edits_per_day_x = []
     edits_per_day_y = []
@@ -276,13 +276,13 @@ def impact_import_creationtomaintenance_ratio(db, groups, date_before, event_dat
     dict_user_total_contribs = {}
     dict_user_creates = {}
 
-    contribs_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+"' GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
+    contribs_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+"' GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
 
     for a in contribs_per_user:
         dict_user_total_contribs[a[1]] = a[0]
 
 
-    creates_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+"' AND version = 1 GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' AND version = 1 GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "'AND version = 1 GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
+    creates_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d')+"' AND version = 1 GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before_convert.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date_convert.strftime('%Y-%m-%d') + "' AND version = 1 GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions)"])
 
     for a in creates_per_user:
         dict_user_creates[a[1]] = a[0]
@@ -345,13 +345,13 @@ def impact_import_creationtomaintenance_ratio_abnormal_return(db, googleDriveCon
     dict_user_total_contribs = {}
     dict_user_creates = {}
 
-    contribs_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d')+" 00:00:00' GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d') + " 00:00:00' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d') + " 00:00:00' GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions) "])
+    contribs_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d')+" 00:00:00' GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d') + " 00:00:00' GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions) "])
 
     for a in contribs_per_user:
         dict_user_total_contribs[a[1]] = a[0]
 
 
-    creates_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d')+" 00:00:00' AND version = 1 GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d') + " 00:00:00' AND version = 1 GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d') + " 00:00:00' AND version = 1 GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions) "])
+    creates_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d')+" 00:00:00' AND version = 1 GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at >= '" + date_before.strftime('%Y-%m-%d') + "' AND created_at < '" + event_date.strftime('%Y-%m-%d') + " 00:00:00' AND version = 1 GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions) "])
 
     for a in creates_per_user:
         dict_user_creates[a[1]] = a[0]
@@ -362,13 +362,13 @@ def impact_import_creationtomaintenance_ratio_abnormal_return(db, googleDriveCon
         dict_user_expected_ratio[k] = dict_user_creates.get(k,decimal.Decimal(0.0)) / dict_user_total_contribs[k] / diff_expected_user
 
     #actual ratio per user for the period given as input
-    contribs_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at <= '" + date_after.strftime('%Y-%m-%d') + "' AND created_at > '" + event_date.strftime('%Y-%m-%d')+" 24:00:00' GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at <= '" + date_after.strftime('%Y-%m-%d') + "' AND created_at > '" + event_date.strftime('%Y-%m-%d') + " 24:00:00' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at <= '" + date_after.strftime('%Y-%m-%d') + "' AND created_at > '" + event_date.strftime('%Y-%m-%d') + " 24:00:00' GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions) "])
+    contribs_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at <= '" + date_after.strftime('%Y-%m-%d') + "' AND created_at > '" + event_date.strftime('%Y-%m-%d')+" 24:00:00' GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at <= '" + date_after.strftime('%Y-%m-%d') + "' AND created_at > '" + event_date.strftime('%Y-%m-%d') + " 24:00:00' GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions) "])
 
     for a in contribs_per_user:
         dict_user_total_contribs[a[1]] = a[0]
 
 
-    creates_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at <= '" + date_after.strftime('%Y-%m-%d') + "' AND created_at > '" + event_date.strftime('%Y-%m-%d')+" 24:00:00' GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at <= '" + date_after.strftime('%Y-%m-%d') + "' AND created_at > '" + event_date.strftime('%Y-%m-%d') + " 24:00:00' GROUP BY user_name) UNION ALL (SELECT count(*) as contributions, user_name from relations where created_at <= '" + date_after.strftime('%Y-%m-%d') + "' AND created_at > '" + event_date.strftime('%Y-%m-%d') + " 24:00:00' GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions) "])
+    creates_per_user = db.execute(["with C as((SELECT count(*) as contributions, user_name from nodes where created_at <= '" + date_after.strftime('%Y-%m-%d') + "' AND created_at > '" + event_date.strftime('%Y-%m-%d')+" 24:00:00' GROUP BY user_name)UNION ALL (SELECT count(*) as contributions, user_name from ways where created_at <= '" + date_after.strftime('%Y-%m-%d') + "' AND created_at > '" + event_date.strftime('%Y-%m-%d') + " 24:00:00' GROUP BY user_name)) SELECT SUM(contributions) as contributions, user_name from C GROUP BY user_name ORDER BY SUM(contributions) "])
 
     for a in creates_per_user:
         dict_user_creates[a[1]] = a[0]
@@ -473,7 +473,7 @@ def impact_import_creationtomaintenance_ratio_abnormal_return(db, googleDriveCon
 #=========================================================================================#
 #===Looking at evolution of the most edited amenity types per user for a certain period===#
 #=========================================================================================#
-def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_date,date_after, x=None, y=None, import_dir =''):
+def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_before,event_date,date_after, x=None, y=None, import_dir =''):
 
     #Dates computations
 
@@ -501,10 +501,10 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 
     refDict = build_dictionary_of_amenities()
     forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w", "name", "1", "4", "unclassified", "-1"}
-    groups = group_analyser(db, date_before, event_date, x, y)
 
 
-   
+
+
 
     dict1 = {}
     dict2 = {}
@@ -662,10 +662,13 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 
     for j in range (0,3):
         for i in range (0,5):
-            if len(sorted_dict_total2[i]) == 0:
-                textt[j].extend([0])
-            else:
-                textt[j].extend([sorted_dict_total2[i][len(sorted_dict_total2[i])-(j+1)][0]])
+            try:
+                if len(sorted_dict_total2[i]) == 0:
+                    textt[j].extend([0])
+                else:
+                    textt[j].extend([sorted_dict_total2[i][len(sorted_dict_total2[i])-(j+1)][0]])
+            except(IndexError) as error:
+                textt[j].extend("name not provided")
 
 
 
@@ -678,10 +681,17 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
     layout12 = go.Layout(barmode='group', title= 'top_amenity_focus_after')
     fig12 = go.Figure(data=data12, layout=layout12)
 
-
-
     # # SAVE LOCALLY
-    py.image.save_as(fig1, filename=import_dir['local']+'/top_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png')
+    setPlotlyCredentials()
+    retry = True
+    while retry:
+        try:
+            retry = False
+            py.image.save_as(fig1, filename=import_dir['local']+'/top_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png')
+        except (Exception, plotly.exceptions.PlotlyRequestError) as error:
+            print('Plotly limit error... Don\'t care!')
+            retry = True
+            setPlotlyCredentials()
 
     # # UPLOAD TO GOOGLE DRIVE
     filename = 'top_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png'
@@ -690,7 +700,16 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 
 
     # # SAVE LOCALLY
-    py.image.save_as(fig12, filename=import_dir['local']+'/top_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png')
+    setPlotlyCredentials()
+    retry = True
+    while retry:
+        try:
+            retry = False
+            py.image.save_as(fig12, filename=import_dir['local']+'/top_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png')
+        except (Exception, plotly.exceptions.PlotlyRequestError) as error:
+            print('Plotly limit error... Don\'t care!')
+            retry = True
+            setPlotlyCredentials()
 
     # # UPLOAD TO GOOGLE DRIVE
     filename = 'top_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png'
@@ -699,7 +718,7 @@ def top_amenity_evolution_per_group(db,googleDriveConnection, date_before,event_
 
 
 
-def top_import_amenity_abnormal_return(db,googleDriveConnection, date_before,event_date,date_after, iMport, x=None, y=None, import_dir =''):
+def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_before,event_date,date_after, iMport, x=None, y=None, import_dir =''):
 
     #Dates computations
 
@@ -729,7 +748,7 @@ def top_import_amenity_abnormal_return(db,googleDriveConnection, date_before,eve
     refDict = build_dictionary_of_amenities()
     forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w", "name", "1", "4", "unclassified", "-1"}
     absol_dict = get_amenities_top(db, iMport)
-    groups = group_analyser(db, date_before, event_date, x, y)
+
 
 
     top1 = list(absol_dict)[0]
@@ -958,14 +977,20 @@ def top_import_amenity_abnormal_return(db,googleDriveConnection, date_before,eve
     data2 = [group_12,group_22,group_32,group_42,group_52]
     fig2 = dict(data = data2, layout = layout2)
 
-    # py.plot(data,filename='box-plots osm London month')
-
-
-
+    # py.plot(data,filename='box-plots osm London month'
 
 
     # # SAVE LOCALLY
-    py.image.save_as(fig, filename=import_dir['local']+'/import_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png')
+    setPlotlyCredentials()
+    retry = True
+    while retry:
+        try:
+            retry = False
+            py.image.save_as(fig, filename=import_dir['local']+'/import_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png')
+        except (Exception, plotly.exceptions.PlotlyRequestError) as error:
+            print('Plotly limit error... Don\'t care!')
+            retry = True
+            setPlotlyCredentials()
 
     # # UPLOAD TO GOOGLE DRIVE
     filename = 'import_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png'
@@ -974,156 +999,21 @@ def top_import_amenity_abnormal_return(db,googleDriveConnection, date_before,eve
 
 
     # # SAVE LOCALLY
-    py.image.save_as(fig2, filename=import_dir['local']+'/import_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png')
+    setPlotlyCredentials()
+    retry = True
+    while retry:
+        try:
+            retry = False
+            py.image.save_as(fig2, filename=import_dir['local']+'/import_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png')
+        except (Exception, plotly.exceptions.PlotlyRequestError) as error:
+            print('Plotly limit error... Don\'t care!')
+            retry = True
+            setPlotlyCredentials()
 
     # # UPLOAD TO GOOGLE DRIVE
     filename = 'import_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png'
     filelocation = import_dir['local']+'/import_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png'
     googleDriveConnection.upload_GoogleDrive(filename,filelocation, import_dir['google'])
-
-
-#=======================#
-#===Survival analysis===#
-#=======================#
-
-
-def survivalAnalysis(db,googleDriveConnection, groups, date_before,event_date, x=None, y=None, import_dir =''):
-    
-    timeOfDeath = db.execute(["select MAX(max) as date, user_name from ((select user_name, max(created_at) from nodes group by user_name order by user_name) union all (select user_name, max(created_at) from ways group by user_name order by user_name) union all (select user_name, max(created_at) from relations group by user_name order by user_name)) as t group by user_name;"])
-    # select date, count(user_name) from () as x group by date
-    
-    users = []
-    time = []
-    timeOfDeath.sort()
-
-    for (x,y) in timeOfDeath:
-        time.append(x)
-        users.append(y)
-
-    resultByGroups = [[[]],[[]],[[]],[[]],[[]]]
-    counter = 0
-    finalTimes = [[],[],[],[],[]]
-    finalIndex = 0
-    finalCounts = []
-    index = [0,0,0,0,0]
-    previousDateIndex = [0,0,0,0,0]
-    group = 0
-    groupAssigned = False
-    isFirst = [True, True, True, True, True]
-    time.sort()
-    for i in timeOfDeath:
-        if time[counter].date() >= date_before.date():
-            if users[counter] in groups[0]:
-                group = 0
-                groupAssigned = True
-            if users[counter] in groups[1]:
-                group = 1
-                groupAssigned = True
-            if users[counter] in groups[2]:
-                group = 2
-                groupAssigned = True
-            if users[counter] in groups[3]:
-                group = 3
-                groupAssigned = True
-            if users[counter] in groups[4]:
-                group = 4
-                groupAssigned = True
-
-            if groupAssigned == True:
-                if isFirst[group] == True:
-                    previousDateIndex[group] = counter
-                    isFirst[group] = False
-
-                if time[previousDateIndex[group]].date() != time[counter].date():
-                    finalTimes[group].append(time[previousDateIndex[group]].date())
-                    index[group] += 1
-                    resultByGroups[group].append([])
-                previousDateIndex[group] = counter  
-                resultByGroups[group][index[group]].append(users[counter])
-        groupAssigned = False
-        counter += 1
-
-       
-            
-    totalUsers = []
-
-    totalDeathsByDay = [[],[],[],[],[]]
-
-    for i in range(0,5):
-        for array in resultByGroups[i]:
-            totalDeathsByDay[i].append(len(array))
-
-    for i in range(0,5):
-        totalUsers.append(len(groups[i]))
-
-
-
-    activeUsers = [[],[],[],[],[]]
-    
-    for i in range(0,5):
-        for j in totalDeathsByDay[i]:
-            activeUsers[i].append(totalUsers[i])
-            totalUsers[i] -= j
-
-
-    
-    trace1 = go.Scatter(
-    x = finalTimes[0],
-    y = activeUsers[0],
-    name= "Group 1"
-    )
-    trace2 = go.Scatter(
-    x = finalTimes[1],
-    y = activeUsers[1],
-    name= "Group 2"
-    )
-    trace3 = go.Scatter(
-    x = finalTimes[2],
-    y = activeUsers[2],
-    name= "Group 3"
-    )
-    trace4 = go.Scatter(
-    x = finalTimes[3],
-    y = activeUsers[3],
-    name= "Group 4"
-    )
-    trace5 = go.Scatter(
-    x = finalTimes[4],
-    y = activeUsers[4],
-    name= "Group 5"
-    )
-    layout = {
-        'shapes': [
-            # Line Vertical
-            {
-                'type': 'line',
-                'x0': event_date,
-                'y0': 0,
-                'x1': event_date,
-                'y1': len(groups[0]),
-                'line': {
-                    'color': 'rgb(55, 128, 191)',
-                    'width': 3,
-                },
-            }
-        ], 'title': "survival analysis" 
-
-    }
-
-    data = [ trace1 ,trace2, trace3, trace4, trace5]
-    fig = {
-        'data': data,
-        'layout': layout,
-    }
-    
-     # # SAVE LOCALLY
-    py.image.save_as(fig, filename=import_dir['local']+'/survival analysis'+event_date.strftime('%Y-%m-%d')+'.png')
-
-    # # UPLOAD TO GOOGLE DRIVE
-    filename = 'survival analysis'+event_date.strftime('%Y-%m-%d')+'.png'
-    filelocation = import_dir['local']+'/survival analysis'+event_date.strftime('%Y-%m-%d')+'.png'
-    googleDriveConnection.upload_GoogleDrive(filename,filelocation, import_dir['google'])
-
 
 
 #-----------------------------------------------------------------------------------------------------------------------------
@@ -1291,11 +1181,156 @@ def trim_95Perc_rule(data):
             data.remove(num)
             false_positive.append(num)
 
-    # print("Disregarded Data Points: ")
-    # print(false_positive)
-
     return data
 
+# ===============================================================================================
+# ============================SURVIVAL ANALYSIS==================================================
+# ===============================================================================================
+
+def survivalAnalysis(db,googleDriveConnection, groups, date_before, event_date, date_after):
+	timeOfDeath = db.execute(["select MAX(max) as date, user_name from ((select user_name, max(created_at) from nodes group by user_name order by user_name) union all (select user_name, max(created_at) from ways group by user_name order by user_name) union all (select user_name, max(created_at) from relations group by user_name order by user_name)) as t group by user_name;"])
+	# select date, count(user_name) from () as x group by date
+
+	users = []
+	time = []
+	print(date_before)
+	print(event_date)
+	timeOfDeath.sort()
+
+	for (x,y) in timeOfDeath:
+		time.append(x)
+		users.append(y)
+
+	resultByGroups = [[[]],[[]],[[]],[[]],[[]]]
+	counter = 0
+	finalTimes = [[],[],[],[],[]]
+	finalIndex = 0
+	finalCounts = []
+	index = [0,0,0,0,0]
+	previousDateIndex = [0,0,0,0,0]
+	group = 0
+	groupAssigned = False
+	isFirst = [True, True, True, True, True]
+	time.sort()
+
+	for i in timeOfDeath:
+		if time[counter].date() >= date_before.date():
+			if users[counter] in groups[0]:
+				group = 0
+				groupAssigned = True
+			if users[counter] in groups[1]:
+				group = 1
+				groupAssigned = True
+			if users[counter] in groups[2]:
+				group = 2
+				groupAssigned = True
+			if users[counter] in groups[3]:
+				group = 3
+				groupAssigned = True
+			if users[counter] in groups[4]:
+				group = 4
+				groupAssigned = True
+
+			if groupAssigned == True:
+				if isFirst[group] == True:
+					previousDateIndex[group] = counter
+					isFirst[group] = False
+
+				if time[previousDateIndex[group]].date() != time[counter].date():
+					finalTimes[group].append(time[previousDateIndex[group]].date())
+					index[group] += 1
+					resultByGroups[group].append([])
+				previousDateIndex[group] = counter
+				resultByGroups[group][index[group]].append(users[counter])
+		groupAssigned = False
+		counter += 1
+
+	totalUsers = []
+
+	totalDeathsByDay = [[],[],[],[],[]]
+
+	for i in range(0,5):
+		for array in resultByGroups[i]:
+			totalDeathsByDay[i].append(len(array))
+
+	for i in range(0,5):
+		totalUsers.append(len(groups[i]))
+
+
+
+	activeUsers = [[],[],[],[],[]]
+
+	for i in range(0,5):
+		for j in totalDeathsByDay[i]:
+			activeUsers[i].append(totalUsers[i])
+			totalUsers[i] -= j
+
+
+
+	trace1 = go.Scatter(
+    x = finalTimes[0],
+    y = activeUsers[0],
+    name= "Group 0"
+	)
+	trace2 = go.Scatter(
+    x = finalTimes[1],
+    y = activeUsers[1],
+    name= "Group 1"
+	)
+	trace3 = go.Scatter(
+    x = finalTimes[2],
+    y = activeUsers[2],
+    name= "Group 2"
+	)
+	trace4 = go.Scatter(
+    x = finalTimes[3],
+    y = activeUsers[3],
+    name= "Group 3"
+	)
+	trace5 = go.Scatter(
+    x = finalTimes[4],
+    y = activeUsers[4],
+    name= "Group 4"
+	)
+	layout = {
+	    'shapes': [
+	        # Line Vertical
+	        {
+	            'type': 'line',
+	            'x0': event_date,
+	            'y0': 0,
+	            'x1': event_date,
+	            'y1': len(groups[0]),
+	            'line': {
+	                'color': 'rgb(55, 128, 191)',
+	                'width': 3,
+	            },
+	        }
+	    ]
+	}
+
+	data = [ trace1 ,trace2, trace3, trace4, trace5]
+	fig = {
+	    'data': data,
+	    'layout': layout,
+	}
+
+    # # SAVE LOCALLY
+    setPlotlyCredentials()
+    retry = True
+    while retry:
+        try:
+            retry = False
+            py.image.save_as(fig, filename=import_dir['local']+'/survival analysis'+event_date.strftime('%Y-%m-%d')+'.png')
+        except (Exception, plotly.exceptions.PlotlyRequestError) as error:
+            print('Plotly limit error... Don\'t care!')
+            retry = True
+            setPlotlyCredentials()
+
+    # # UPLOAD TO GOOGLE DRIVE
+    filename = 'survival analysis'+event_date.strftime('%Y-%m-%d')+'.png'
+    filelocation = import_dir['local']+'/survival analysis'+event_date.strftime('%Y-%m-%d')+'.png'
+    googleDriveConnection.upload_GoogleDrive(filename,filelocation, import_dir['google'])
 
 #================================================================================================
 #================================RANGE FINDER====================================================
@@ -1308,9 +1343,10 @@ def find_range(data):
 # =============== Avoid plotly limitation ===============
 plotCred = [
     ['RomainDumon','cJVtOQ4pZHAaQcBeTULV'],
-    ['aoussbai','uWPqQZwnbe5MgCrfqk3V'],
+    ['aoussbai','jWkPjojJV8vrsSDbeU8J'],
     ['JhumanJ','xUuKkx6qmi5j3E75OpgT'],
-    ['charlydes','6ufsK3cLlAp4DUzohtm8']
+    ['charlydes','6ufsK3cLlAp4DUzohtm8'],
+    ['kristelle', 'SurOvd0IiMprlmA3k7rp']
 ]
 currentPlotlyAccount = 0
 
