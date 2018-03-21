@@ -74,6 +74,7 @@ with open(jsonPath, "r") as jsonFile:
 for iMport in jsondata:
 
 	import_date = datetime.datetime.strptime(jsondata[iMport][0],'%Y-%m-%d')
+	print(import_date)
 
 	# ======= CREATE DIR FOR GRAPHS OF THIS SPECIFIC CITY======
 	import_dir['local'] = import_dir['local'] + '/' +  import_date.strftime('%Y-%m-%d')
@@ -96,6 +97,7 @@ for iMport in jsondata:
 	# # ABNORMAL RETURN OF CONTRIBUTIONS PER GROUP (based on expected return of 6 month before the import)
 	# # 1 week, 1 month, 3 month
 	for date_after in time_intervals:
+		print(date_after)
 		abnormal_return_for_group(db, googleDriveConnection, groups, import_date-relativedelta(months=+6) , import_date , date_after,import_dir)
 
 	# EVOLUTION OF EDITS PERIOD
