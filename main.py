@@ -25,14 +25,12 @@ shared_drive_id = '1jS9wv4965g5eKFdKJ7RrW-yHHXkv9OqH'
 x = [437240180,74091370]
 y = [437516580,74390270]
 
-
-
 # =============TEST==================
 
 # Name of City Must be passed as an argument
 if len(sys.argv) < 2:
-        print("Usage: python main.py <DB name> <Detection Level (optionnal)>")
-        sys.exit(-1)
+    print("Usage: python main.py <DB name> <Detection Level (optionnal)> <x[0]> <x[1]> <y[0]> <y[1]>")
+    sys.exit(-1)
 
 city = sys.argv[1]
 
@@ -40,6 +38,13 @@ city = sys.argv[1]
 detectionLevel = 20
 if len(sys.argv) > 2:
     detectionLevel = int(sys.argv[2])
+
+if len(sys.argv) > 6:
+    x[0] = int(sys.argv[3])
+    x[1] = int(sys.argv[4])
+    y[0] = int(sys.argv[5])
+    y[1] = int(sys.argv[6])
+    print("Coordinates set.")
 
 #  Configure db
 with open("config.json", "r") as jsonFile:
@@ -75,14 +80,11 @@ if not os.path.exists(folder_info_of_city['local']):
 
 # LIST OF THE IMPORT DETECTED FOR THE CITY
 imports_normal = detectImport(db, city, x, y, folder_info_of_city, googleDriveConnection ,detectionLevel)
-# imports_normal = [[datetime.datetime(2009, 8, 17, 0, 0), 'NaPTAN']]
 
 # EXTRA INFORMATION FOR EACH IMPORT
 imports_normal_extra = imports_report(db, googleDriveConnection, imports_normal, folder_info_of_city)
-#example
-# imports_normal_extra =[[[datetime.datetime(2009, 8, 17, 0, 0), 'NaPTAN'], [{u'bus_stop': 20100}], [{u'aircraft_fuel': 0}]]]
 
-print("\n-------------Starting Impacxwt Analysis-------------\n")
+print("\n-------------Starting Impact Analysis (look Romain I fixed the typo)-------------\n")
 
 # Analyse Import by Import
 for iMport in imports_normal_extra:

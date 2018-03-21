@@ -501,10 +501,10 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
 
     refDict = build_dictionary_of_amenities()
     forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w", "name", "1", "4", "unclassified", "-1"}
-    
 
 
-   
+
+
 
     dict1 = {}
     dict2 = {}
@@ -662,12 +662,12 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
 
     for j in range (0,3):
         for i in range (0,5):
-            try: 
+            try:
                 if len(sorted_dict_total2[i]) == 0:
                     textt[j].extend([0])
                 else:
                     textt[j].extend([sorted_dict_total2[i][len(sorted_dict_total2[i])-(j+1)][0]])
-            except(IndexError) as error: 
+            except(IndexError) as error:
                 textt[j].extend("name not provided")
 
 
@@ -732,7 +732,7 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
     refDict = build_dictionary_of_amenities()
     forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w", "name", "1", "4", "unclassified", "-1"}
     absol_dict = get_amenities_top(db, iMport)
-    
+
 
 
     top1 = list(absol_dict)[0]
@@ -993,7 +993,7 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
 
 def survivalAnalysis(groups, db,googleDriveConnection, date_before,event_date, x=None, y=None, import_dir =''):
 
-    
+
     timeOfDeath = db.execute(["select MAX(max) as date, user_name from ((select user_name, max(created_at) from nodes group by user_name order by user_name) union all (select user_name, max(created_at) from ways group by user_name order by user_name)) as t group by user_name;"])
     # select date, count(user_name) from () as x group by date
 
@@ -1043,13 +1043,13 @@ def survivalAnalysis(groups, db,googleDriveConnection, date_before,event_date, x
                     finalTimes[group].append(time[previousDateIndex[group]].date())
                     index[group] += 1
                     resultByGroups[group].append([])
-                previousDateIndex[group] = counter  
+                previousDateIndex[group] = counter
                 resultByGroups[group][index[group]].append(users[counter])
         groupAssigned = False
         counter += 1
 
-       
-            
+
+
     totalUsers = []
 
     totalDeathsByDay = [[],[],[],[],[]]
@@ -1064,14 +1064,14 @@ def survivalAnalysis(groups, db,googleDriveConnection, date_before,event_date, x
 
 
     activeUsers = [[],[],[],[],[]]
-    
+
     for i in range(0,5):
         for j in totalDeathsByDay[i]:
             activeUsers[i].append(totalUsers[i])
             totalUsers[i] -= j
 
 
-    
+
     trace1 = go.Scatter(
     x = finalTimes[0],
     y = activeUsers[0],
@@ -1111,7 +1111,7 @@ def survivalAnalysis(groups, db,googleDriveConnection, date_before,event_date, x
                     'width': 3,
                 },
             }
-        ], 'title': "survival analysis" 
+        ], 'title': "survival analysis"
 
     }
 
@@ -1120,9 +1120,18 @@ def survivalAnalysis(groups, db,googleDriveConnection, date_before,event_date, x
         'data': data,
         'layout': layout,
     }
-    
-     # # SAVE LOCALLY
-    py.image.save_as(fig, filename=import_dir['local']+'/survival analysis'+event_date.strftime('%Y-%m-%d')+'.png')
+
+    # # SAVE LOCALLY
+    setPlotlyCredentials()
+    retry = True
+    while retry:
+        try:
+            retry = False
+            py.image.save_as(fig, filename=import_dir['local']+'/survival analysis'+event_date.strftime('%Y-%m-%d')+'.png')
+        except (Exception, plotly.exceptions.PlotlyRequestError) as error:
+            print('Plotly limit error... Don\'t care!')
+            retry = True
+            setPlotlyCredentials()
 
     # # UPLOAD TO GOOGLE DRIVE
     filename = 'survival analysis'+event_date.strftime('%Y-%m-%d')+'.png'
@@ -1296,9 +1305,6 @@ def trim_95Perc_rule(data):
             data.remove(num)
             false_positive.append(num)
 
-    # print("Disregarded Data Points: ")
-    # print(false_positive)
-
     return data
 
 
@@ -1315,7 +1321,7 @@ plotCred = [
     ['RomainDumon','cJVtOQ4pZHAaQcBeTULV'],
     ['aoussbai','jWkPjojJV8vrsSDbeU8J'],
     ['JhumanJ','xUuKkx6qmi5j3E75OpgT'],
-    ['charlydes','6ufsK3cLlAp4DUzohtm8'], 
+    ['charlydes','6ufsK3cLlAp4DUzohtm8'],
     ['kristelle', 'SurOvd0IiMprlmA3k7rp']
 ]
 currentPlotlyAccount = 0
