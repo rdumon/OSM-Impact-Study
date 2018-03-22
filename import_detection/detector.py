@@ -4,7 +4,7 @@ This module does all the analysis to detect an import
 def detectImport(db,cityName='', x = None , y = None, dir_write_to = '', googleDriveConnection = '', detectionLevel = ):
 def find_contribution_type_of_import(db, iMport = [], table =""):
 def imports_report(db, googleDriveConnection, imports= [], dir_write_to = ''):
-    
+
 """
 
 import sys

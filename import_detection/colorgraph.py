@@ -44,13 +44,13 @@ def draw_heatMap(db, googleDriveConnection, importInfo = [], x=None, y=None, cit
             mode='markers',
             marker=Marker(
                 size=3,
-                color='rgb('+str(random.randint(0, 155))+','+str(random.randint(0, 155))+','+str(random.randint(0, 155))+')',
+                color='rgb(255,0,0)',
             )
 
         )
     ])
     layout = Layout(
-        title = "Map of Import in " + city + " on the " + date_convert.strftime('%Y-%m-%d') + " by " + user_name,
+        title = "Map of Import in " + city + " on the " + date_convert.strftime('%Y-%m-%d') + " done by " + user_name,
         autosize=True,
         width=3600, height=2400,
         hovermode='closest',

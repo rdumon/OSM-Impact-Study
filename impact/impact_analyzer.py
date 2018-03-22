@@ -128,10 +128,9 @@ def abnormal_return_for_group(db, googleDriveConnection, groups, date_before, ev
             minVal = np.amin(data)
 
     layout = go.Layout(
-        title = "Abnormal Return " +str(diff_actual_user) + " weeks after event",
+        title = "Abnormal Return " +str(diff_actual_user) + " Weeks After Event",
         width=1200, height=540,
         yaxis = dict(range = [minVal,maxVal]),
-
     )
 
     data = [group_1,group_2,group_3,group_4,group_5]
@@ -983,15 +982,20 @@ def group_analyserv2(db, date_before, event_date):
     # a[0]: nb contrib/semaine
     # a[1]: user
 
+    # Build dictionnary of birthdate
+    creation_date_query = "SELECT user_name, min(created_at) from (select user_name,to_char(min(created_at),'YYYYMMDD') as created_at from nodes  group by user_name UNION ALL select user_name, to_char(min(created_at),'YYYYMMDD') as created_at from ways group by user_name) as A group by user_name"
+    temp_all_birthday = db.execute([creation_date_query]);
+    all_birthday = {}
+    for item in temp_all_birthday:
+        all_birthday[item[0]] = item[1]
+
     # ======= Remove "virgin" user =======
     #  Only applicable after 2007 as it's the creation date of OSM
     if date_before > datetime.datetime.strptime('2008-01-01', '%Y-%m-%d'):
         print("Checking for new users to remove...")
         for user in expected_per_user:
-            virgin_query = "SELECT min(created_at) from (select user_name,to_char(min(created_at),'YYYYMMDD') as created_at from nodes  where user_name = '"+user[1]+"' group by user_name  UNION ALL select user_name, to_char(min(created_at),'YYYYMMDD') as created_at from ways where user_name = '"+user[1]+"' group by user_name) as A group by user_name"
-            birthdate = db.execute([virgin_query])
-            if birthdate and birthdate[0] and birthdate[0][0] and date_before < datetime.datetime.strptime(birthdate[0][0], '%Y%m%d'):
-                print(user[1]+ ': ' +str(birthdate[0][0] +" is a virgin ... "+ str(date_before.strftime('%Y-%m-%d')) ) )
+            if date_before < datetime.datetime.strptime(all_birthday[user[1]], '%Y%m%d'):
+                print(user[1]+ ': ' +str(all_birthday[user[1]]) +" is a virgin ... "+ str(date_before.strftime('%Y-%m-%d')) )
                 expected_per_user.remove(user)
     # Divides the expected user in 5 groups
     groups = [[],[],[],[],[]]
@@ -1006,11 +1010,11 @@ def group_analyserv2(db, date_before, event_date):
     diff = total_contributions /5
 
     # ======== BY percentage =============
-    threshold.append(total_contributions)
-    threshold.append(decimal.Decimal(0.90)*total_contributions)
-    threshold.append(decimal.Decimal(0.75)*total_contributions)
-    threshold.append(decimal.Decimal(0.55)*total_contributions)
-    threshold.append(decimal.Decimal(0.30)*total_contributions)
+    threshold.append(total_contributions)                       #5
+    threshold.append(decimal.Decimal(0.95)*total_contributions) #10
+    threshold.append(decimal.Decimal(0.85)*total_contributions) #15
+    threshold.append(decimal.Decimal(0.70)*total_contributions) #20
+    threshold.append(decimal.Decimal(0.50)*total_contributions) #50
 
     expected_per_user.sort(key= lambda x : int (x[0]))
 
