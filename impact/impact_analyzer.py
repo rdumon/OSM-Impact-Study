@@ -821,8 +821,9 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
 
     for i in range(0,len(ratio_total)):
         data = []
+        counter=0
         for user in ratio_total[i]:
-            data.append(ratio_total2[i].get(user.decimal.Decimal(0.0)) - ratio_total[i].get(user.decimal.Decimal(0.0)))
+            data.append(ratio_total2[i].get(user,(0.0)) - ratio_total[i].get(user,(0.0)))
 
         dataAbnormal.append(data)
         counter +=1
