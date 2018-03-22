@@ -55,7 +55,7 @@ def analyse_import(db, googleDriveConnection, iMport, x = None, y = None, city =
 	# # # 1 week, 1 month, 3 month
 
 	for date_after in time_intervals:
-	 	top_amenity_evolution_per_group(groups, db,googleDriveConnection, import_date-relativedelta(months=+6),import_date,date_after, x, y, import_dir)
+	 	# top_amenity_evolution_per_group(groups, db,googleDriveConnection, import_date-relativedelta(months=+6),import_date,date_after, x, y, import_dir)
 		top_import_amenity_abnormal_return(groups, db,googleDriveConnection, import_date-relativedelta(months=+6),import_date,date_after, iMport, x, y, import_dir)
 
 	# # SURVIVAL ANALYSIS
