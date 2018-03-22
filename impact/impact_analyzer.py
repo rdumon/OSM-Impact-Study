@@ -602,11 +602,7 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
         for j in range (0, len(sorted_dict_total2[i])-1):
             total_agg2[i]+=sorted_dict_total2[i][j][1]
 
-
-
-#=========================================I still have to loop the rendering of the charts===============================================
-
-
+    #=========================================I still have to loop the rendering of the charts===============================================
 
     ordonnes1 = []
     ordonnes2 = []
@@ -626,11 +622,8 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
 
 
     for j in range (0,3):
-        for i in range (0,5):
+        for i in range (0,len(sorted_dict_total)):
             text[j].extend([sorted_dict_total[i][len(sorted_dict_total[i])-(j+1)][0]])
-
-
-
 
     trace_before1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes1, name='#1', text=text1)
     trace_before2 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes2, name='#2', text=text2)
@@ -639,9 +632,6 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
     data1 = [trace_before1, trace_before2, trace_before3]
     layout1 = go.Layout(barmode='group', title= 'top_amenity_focus_before')
     fig1 = go.Figure(data=data1, layout=layout1)
-
-
-
 
     ordonnes12 = []
     ordonnes22 = []
@@ -654,11 +644,13 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
 
     for j in range (0,3):
         for i in range (0,5):
-            if total_agg2[i] == 0:
-                ordonness[j].extend([0])
-            else:
-                ordonness[j].extend([sorted_dict_total2[i][len(sorted_dict_total2[i])-(j+1)][1]/total_agg2[i]])
-
+            try:
+                if total_agg2[i] == 0:
+                    ordonness[j].extend([0])
+                else:
+                    ordonness[j].extend([sorted_dict_total2[i][len(sorted_dict_total2[i])-(j+1)][1]/total_agg2[i]])
+            except(IndexError) as error:
+                ordonness[j].extend("name not provided")
 
     for j in range (0,3):
         for i in range (0,5):
@@ -669,8 +661,6 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
                     textt[j].extend([sorted_dict_total2[i][len(sorted_dict_total2[i])-(j+1)][0]])
             except(IndexError) as error:
                 textt[j].extend("name not provided")
-
-
 
 
     trace_after1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes12, name='#1', text=text12)
@@ -722,21 +712,16 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
 
     #Dates computations
 
-
+    # Queries
     where_clause = ' '
     if x!=None and y!=None and len(x) == 2 and len(y) == 2:
         where_clause += 'AND latitude > '+str(x[1])+' AND longitude > '+str(x[0])+' AND latitude < '+str(y[1])+' AND longitude < '+str(y[0])
 
     amenity_type_per_user_before_nodes= " SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at >= '" + date_before.strftime('%Y-%m-%d') +"' AND created_at < '" + event_date.strftime('%Y-%m-%d')+" 24:00:00'"+ where_clause + " GROUP BY user_name"
-
     amenity_type_per_user_after_nodes = " SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at < '" + date_after.strftime('%Y-%m-%d') +"' AND created_at > '" + event_date.strftime('%Y-%m-%d')+" 00:00:00'"+ where_clause + " GROUP BY user_name"
-
     amenity_type_per_user_before_ways= " SELECT json_agg(tags) as tags, user_name FROM ways WHERE created_at >= '" + date_before.strftime('%Y-%m-%d') +"' AND created_at < '" + event_date.strftime('%Y-%m-%d')+" 24:00:00' GROUP BY user_name"
-
     amenity_type_per_user_after_ways = " SELECT json_agg(tags) as tags, user_name FROM ways WHERE created_at < '" + date_after.strftime('%Y-%m-%d') +"' AND created_at > '" + event_date.strftime('%Y-%m-%d')+" 00:00:00' GROUP BY user_name"
-
     amenity_type_per_user_before_all = "SELECT json_agg(result.tags) as tags, result.user_name FROM (" + amenity_type_per_user_before_nodes + " UNION ALL " + amenity_type_per_user_before_ways+") AS result GROUP BY result.user_name"
-
     amenity_type_per_user_after_all = "SELECT json_agg(result.tags) as tags, result.user_name FROM (" + amenity_type_per_user_after_nodes + " UNION ALL " + amenity_type_per_user_after_ways+") AS result GROUP BY result.user_name"
 
     analysis_before = db.execute([amenity_type_per_user_before_all])
@@ -746,59 +731,25 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
 
 
     refDict = build_dictionary_of_amenities()
-    forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w", "name", "1", "4", "unclassified", "-1"}
+    forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w", "name", "1", "4", "unclassified", "-1",""}
     absol_dict = get_amenities_top(db, iMport)
-
-
 
     top1 = list(absol_dict)[0]
 
+    # Before variable
+    user_ratio_group_total = [{}, {}, {}, {}, {}]   # Contrib of each user for the ammenity of the import
+    user_contrib_group_total = [{}, {}, {}, {}, {}] # All contribs
 
-    user_ratio_group1 = dict()
-    user_ratio_group2 = dict()
-    user_ratio_group3 = dict()
-    user_ratio_group4 = dict()
-    user_ratio_group5 = dict()
-
-    user_ratio_group_total = [user_ratio_group1, user_ratio_group2, user_ratio_group3, user_ratio_group4, user_ratio_group5]
-
-    user_contrib_group1 = dict()
-    user_contrib_group2 = dict()
-    user_contrib_group3 = dict()
-    user_contrib_group4 = dict()
-    user_contrib_group5 = dict()
-
-    user_contrib_group_total = [user_contrib_group1, user_contrib_group2, user_contrib_group3, user_contrib_group4, user_contrib_group5]
+    # After variable
+    user_ratio_group_total2 = [{}, {}, {}, {}, {}]   # Contrib of each user for the ammenity of the import
+    user_contrib_group_total2 = [{}, {}, {}, {}, {}] # All contribs
 
 
-    user_ratio_group12 = dict()
-    user_ratio_group22 = dict()
-    user_ratio_group32 = dict()
-    user_ratio_group42 = dict()
-    user_ratio_group52 = dict()
+    #=====================here we count the number of contributions per user for the top amenity and the total contributions====================================
 
-    user_ratio_group_total2 = [user_ratio_group12, user_ratio_group22, user_ratio_group32, user_ratio_group42, user_ratio_group52]
-
-    user_contrib_group12 = dict()
-    user_contrib_group22 = dict()
-    user_contrib_group32 = dict()
-    user_contrib_group42 = dict()
-    user_contrib_group52 = dict()
-
-    user_contrib_group_total2 = [user_contrib_group12, user_contrib_group22, user_contrib_group32, user_contrib_group42, user_contrib_group52]
-
-
-
-
-
-#=====================here we count the number of contributions per user for the top amenity and the total contributions====================================
-
-
-
-
-
+    # We fill the variables
     for fields in analysis_before:
-        for count in range(0,4):
+        for count in range(0,5):
             if fields[1] in groups[count]:
                 for tag in fields[0]:
                         for data in tag:
@@ -816,9 +767,9 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
                                         else:
                                             user_contrib_group_total[count][fields[1]] =1
 
-
+    # Same for after
     for fields in analysis_after:
-        for count in range(0,4):
+        for count in range(0,5):
             if fields[1] in groups[count]:
                 for tag in fields[0]:
                         for data in tag:
@@ -836,30 +787,16 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
                                         else:
                                             user_contrib_group_total2[count][fields[1]] =1
 
+    #============================now we can calculate the ratio per user for each group============================================
 
+    ratio_total = [{}, {}, {}, {}, {}]
 
+    ratio_total2 = [{}, {}, {}, {}, {}]
 
-#============================now we can calculate the ratio per user for each group============================================
-
-    ratio1 = dict()
-    ratio2 = dict()
-    ratio3 = dict()
-    ratio4 = dict()
-    ratio5 = dict()
-
-    ratio_total = [ratio1, ratio2, ratio3, ratio4, ratio5]
-
-    ratio12 = dict()
-    ratio22 = dict()
-    ratio32 = dict()
-    ratio42 = dict()
-    ratio52 = dict()
-
-    ratio_total2 = [ratio12, ratio22, ratio32, ratio42, ratio52]
-
+    # Calculate ratio before
     for dictio in  user_contrib_group_total:
         for count in dictio:
-            for i in range(0,4):
+            for i in range(0,5):
                 if count in groups[i]:
                     if dictio[count]==0:
                         ratio_total[i][count]=0
@@ -867,10 +804,10 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
                         if len(user_ratio_group_total[i])!=0 and len(dictio)!=0 and count in user_ratio_group_total[i]:
                             ratio_total[i][count] = user_ratio_group_total[i][count] / dictio[count]
 
-
+    #  Calculate ratio after
     for dictio in  user_contrib_group_total2:
         for count in dictio:
-            for i in range(0,4):
+            for i in range(0,5):
                 if count in groups[i]:
                     if dictio[count]==0:
                         ratio_total2[i][count]=0
@@ -878,50 +815,47 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
                         if len(user_ratio_group_total2[i])!=0 and len(dictio)!=0 and count in user_ratio_group_total2[i]:
                             ratio_total2[i][count] = user_ratio_group_total2[i][count] / dictio[count]
 
-
-
-#=========================now we plot the box plots================================================
+    # =============== Now we calculate abnormal return =============
 
     dataAbnormal = []
-    for ratio in ratio_total:
+
+    for i in range(0,len(ratio_total)):
         data = []
-        for user in ratio:
-            data.append(ratio[user])
+        for user in ratio_total[i]:
+            data.append(ratio_total2[i].get(user.decimal.Decimal(0.0)) - ratio_total[i].get(user.decimal.Decimal(0.0)))
+
         dataAbnormal.append(data)
+        counter +=1
 
-
-
-    dataAbnormal2 = []
-    for ratio in ratio_total2:
-        data2 = []
-        for user in ratio:
-            data.append(ratio[user])
-        dataAbnormal2.append(data)
-
-
+    #=========================now we plot the box plots================================================
 
     group_1 = go.Box(
-            y=trim_95Perc_rule(dataAbnormal[0]),
+            y=dataAbnormal[0],
+            # y=trim_95Perc_rule(dataAbnormal[0]),
             name = 'Group 1',
             boxpoints = False,
         )
     group_2 = go.Box(
-            y=trim_95Perc_rule(dataAbnormal[1]),
+            y=dataAbnormal[1],
+            # y=trim_95Perc_rule(dataAbnormal[1]),
             name = 'Group 2',
             boxpoints = False,
         )
     group_3 = go.Box(
-            y=trim_95Perc_rule(dataAbnormal[2]),
+            y=dataAbnormal[2],
+            # y=trim_95Perc_rule(dataAbnormal[2]),
             name = 'Group 3',
             boxpoints = False,
         )
     group_4 = go.Box(
-            y=trim_95Perc_rule(dataAbnormal[3]),
+            y=dataAbnormal[3],
+            # y=trim_95Perc_rule(dataAbnormal[3]),
             name = 'Group 4',
             boxpoints = False,
         )
     group_5 = go.Box(
-            y=trim_95Perc_rule(dataAbnormal[4]),
+            y=dataAbnormal[4],
+            # y=trim_95Perc_rule(dataAbnormal[4]),
             name = 'Group 5',
             boxpoints = False,
         )
@@ -929,56 +863,10 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
     layout = go.Layout(
             title = "Abnormal Return before" ,
             width=3600, height=2400,
-
-
         )
 
     data = [group_1,group_2,group_3,group_4,group_5]
     fig = dict(data = data, layout = layout)
-
-    # py.plot(data,filename='box-plots osm London month')
-
-
-
-
-    group_12 = go.Box(
-            y=dataAbnormal2[0],
-            name = 'Group 1',
-            boxpoints = False,
-        )
-    group_22 = go.Box(
-            y=dataAbnormal2[1],
-            name = 'Group 2',
-            boxpoints = False,
-        )
-    group_32 = go.Box(
-            y=dataAbnormal2[2],
-            name = 'Group 3',
-            boxpoints = False,
-        )
-    group_42 = go.Box(
-            y=dataAbnormal2[3],
-            name = 'Group 4',
-            boxpoints = False,
-        )
-    group_52 = go.Box(
-            y=dataAbnormal2[4],
-            name = 'Group 5',
-            boxpoints = False,
-        )
-
-    layout2 = go.Layout(
-            title = "Abnormal Return after" ,
-            width=3600, height=2400
-
-
-        )
-
-    data2 = [group_12,group_22,group_32,group_42,group_52]
-    fig2 = dict(data = data2, layout = layout2)
-
-    # py.plot(data,filename='box-plots osm London month'
-
 
     # # SAVE LOCALLY
     setPlotlyCredentials()
@@ -997,23 +885,22 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
     filelocation = import_dir['local']+'/import_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png'
     googleDriveConnection.upload_GoogleDrive(filename,filelocation, import_dir['google'])
 
-
-    # # SAVE LOCALLY
-    setPlotlyCredentials()
-    retry = True
-    while retry:
-        try:
-            retry = False
-            py.image.save_as(fig2, filename=import_dir['local']+'/import_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png')
-        except (Exception, plotly.exceptions.PlotlyRequestError) as error:
-            print('Plotly limit error... Don\'t care!')
-            retry = True
-            setPlotlyCredentials()
-
+    # # ==== SET UP FOR JSON
+    # filename = "abnormalReturnContrib-"+str(diff_actual_user)+"weekAfter"+".json"
+    # filelocation = dir_write_to['local']+"/"+filename
+    #
+    # # == CHANGE DECIMAL OBJECTS TO FLOAT DATA POINTS
+    # for data in dataAbnormal:
+    #     for i in range(0,len(data)):
+    #         data[i] = float(data[i])
+    # json_info = { "data " : dataAbnormal}
+    #
+    # #====MAKE JSON======
+    # with open(filelocation, "w") as f:
+    #     json.dump(json_info, f)
+    #
     # # UPLOAD TO GOOGLE DRIVE
-    filename = 'import_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png'
-    filelocation = import_dir['local']+'/import_amenity_focus_after'+event_date.strftime('%Y-%m-%d')+'.png'
-    googleDriveConnection.upload_GoogleDrive(filename,filelocation, import_dir['google'])
+    # googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'], 'text/json')
 
 
 #-----------------------------------------------------------------------------------------------------------------------------
