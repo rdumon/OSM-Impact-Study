@@ -560,7 +560,7 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
 
 
     for i in range (0,5):
-        sorted_dict_total[i] = sorted(dict_total[i].items(), key=operator.itemgetter(1))
+        sorted_dict_total[i] = sorted(dict_total[i].items(), key=operator.itemgetter(1), reverse=True)
 
 
 
@@ -573,7 +573,7 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
     sorted_dict_total2 = [sorted_dict12, sorted_dict22,sorted_dict32, sorted_dict42, sorted_dict52]
 
     for i in range (0,5):
-        sorted_dict_total2[i] = sorted(dict_total2[i].items(), key=operator.itemgetter(1))
+        sorted_dict_total2[i] = sorted(dict_total2[i].items(), key=operator.itemgetter(1), reverse=True)
 
 
 
@@ -618,12 +618,12 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
             if total_agg1[i] == 0:
                 ordonnes[j].extend([0])
             else:
-                ordonnes[j].extend([sorted_dict_total[i][len(sorted_dict_total[i])-(j+1)][1]/total_agg1[i]])
+                ordonnes[j].extend([sorted_dict_total[i][j][1]/total_agg1[i]])
 
 
     for j in range (0,3):
         for i in range (0,len(sorted_dict_total)):
-            text[j].extend([sorted_dict_total[i][len(sorted_dict_total[i])-(j+1)][0]])
+            text[j].extend([sorted_dict_total[i][j][0]])
 
     trace_before1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes1, name='#1', text=text1)
     trace_before2 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes2, name='#2', text=text2)
