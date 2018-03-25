@@ -27,7 +27,8 @@ def analyse_import(db, googleDriveConnection, iMport, x = None, y = None, city =
 	import_dir['google'] = googleDriveConnection.createFolder(import_date.strftime('%Y-%m-%d'), import_dir['google'])
 
 	# PRINT THE NODES OF THIS IMPORT
-	draw_heatMap(db, googleDriveConnection, iMport, x, y, city, import_dir)
+	# HERE
+	# draw_heatMap(db, googleDriveConnection, iMport, x, y, city, import_dir)
 
 	# GET THE USER GROUPS
 	groups = group_analyserv2(db, import_date-relativedelta(months=+6), import_date)
@@ -37,31 +38,33 @@ def analyse_import(db, googleDriveConnection, iMport, x = None, y = None, city =
 
 	# # ABNORMAL RETURN OF CONTRIBUTIONS PER GROUP (based on expected return of 6 month before the import)
 	# # 1 week, 1 month, 3 month
-	for date_after in time_intervals:
-		abnormal_return_for_group(db, googleDriveConnection, groups, import_date-relativedelta(months=+6) , import_date , date_after, x, y, import_dir)
+	# HERE
+	# for date_after in time_intervals:
+	# 	abnormal_return_for_group(db, googleDriveConnection, groups, import_date-relativedelta(months=+6) , import_date , date_after, x, y, import_dir)
 
 	# # EVOLUTION OF EDITS PERIOD
 	# # 6 month after
-	contribution_types_gobal_analysis(db, googleDriveConnection, import_date-relativedelta(months=+6),import_date,import_date+relativedelta(months=+6), x, y, import_dir)
+	#  HERE
+	# contribution_types_gobal_analysis(db, googleDriveConnection, import_date-relativedelta(months=+6),import_date,import_date+relativedelta(months=+6), x, y, import_dir)
 
 
 	# # ABNORMAL RETURN OF MAINTENANCE RATIO PER GROUP
 	# # 1 week, 1 month, 3 month
-	for date_after in time_intervals:
-		impact_import_creationtomaintenance_ratio_abnormal_return(db, googleDriveConnection, groups,  import_date-relativedelta(months=+6), import_date, date_after, import_dir)
-
+	# HERE
+	# for date_after in time_intervals:
+	# 	impact_import_creationtomaintenance_ratio_abnormal_return(db, googleDriveConnection, groups,  import_date-relativedelta(months=+6), import_date, date_after, import_dir)
 
 	# # # AMENITY EVOLUTION PER GROUP
 	# # # 1 week, 1 month, 3 month
 
 	for date_after in time_intervals:
 	 	top_amenity_evolution_per_group(groups, db,googleDriveConnection, import_date-relativedelta(months=+6),import_date,date_after, x, y, import_dir)
-		top_import_amenity_abnormal_return(groups, db,googleDriveConnection, import_date-relativedelta(months=+6),import_date,date_after, iMport, x, y, import_dir)
+		# top_import_amenity_abnormal_return(groups, db,googleDriveConnection, import_date-relativedelta(months=+6),import_date,date_after, iMport, x, y, import_dir)
 
 	# # SURVIVAL ANALYSIS
 	# # 1 week, 1 month, 3 months
 
-	survivalAnalysis(db,googleDriveConnection,groups, import_date-relativedelta(months=+6),import_date,import_dir)
+	# survivalAnalysis(db,googleDriveConnection,groups, import_date-relativedelta(months=+6),import_date,import_dir)
 
 
 

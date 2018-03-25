@@ -2,6 +2,7 @@ import sys
 import json
 import decimal
 import datetime
+from dateutil.relativedelta import relativedelta
 import plotly
 import plotly.plotly as py
 import plotly.graph_objs as go
@@ -84,7 +85,6 @@ def abnormal_return_for_group(db, googleDriveConnection, groups, date_before, ev
 
     dataAbnormal = []
     for group in groups:
-        print(group)
         data = []
         for user in group:
             data.append(abnormalReturnPerUser_one_month[user])
@@ -120,7 +120,6 @@ def abnormal_return_for_group(db, googleDriveConnection, groups, date_before, ev
     maxVal = 0
     minVal = 0
 
-    print (dataAbnormal)
     for data in dataAbnormal:
         if np.amax(data) > maxVal:
             maxVal = np.amax(data)
@@ -483,13 +482,13 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
     if x!=None and y!=None and len(x) == 2 and len(y) == 2:
         where_clause += 'AND latitude > '+str(x[1])+' AND longitude > '+str(x[0])+' AND latitude < '+str(y[1])+' AND longitude < '+str(y[0])
 
-    amenity_type_per_user_before_nodes= " SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at >= '" + date_before.strftime('%Y-%m-%d') +"' AND created_at < '" + event_date.strftime('%Y-%m-%d')+" 24:00:00'"+ where_clause + " GROUP BY user_name"
+    amenity_type_per_user_before_nodes= " SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at >= '" + date_before.strftime('%Y-%m-%d') +"' AND created_at < '" + (event_date+relativedelta(days=-1)).strftime('%Y-%m-%d')+" 00:00:00'"+ where_clause + " GROUP BY user_name"
 
-    amenity_type_per_user_after_nodes = " SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at < '" + date_after.strftime('%Y-%m-%d') +"' AND created_at > '" + event_date.strftime('%Y-%m-%d')+" 00:00:00'"+ where_clause + " GROUP BY user_name"
+    amenity_type_per_user_after_nodes = " SELECT json_agg(tags) as tags, user_name FROM nodes WHERE created_at < '" + date_after.strftime('%Y-%m-%d') +"' AND created_at > '" + (event_date+relativedelta(days=+1)).strftime('%Y-%m-%d')+" 00:00:00'"+ where_clause + " GROUP BY user_name"
 
-    amenity_type_per_user_before_ways= " SELECT json_agg(tags) as tags, user_name FROM ways WHERE created_at >= '" + date_before.strftime('%Y-%m-%d') +"' AND created_at < '" + event_date.strftime('%Y-%m-%d')+" 24:00:00' GROUP BY user_name"
+    amenity_type_per_user_before_ways= " SELECT json_agg(tags) as tags, user_name FROM ways WHERE created_at >= '" + date_before.strftime('%Y-%m-%d') +"' AND created_at < '" + (event_date+relativedelta(days=-1)).strftime('%Y-%m-%d')+" 00:00:00' GROUP BY user_name"
 
-    amenity_type_per_user_after_ways = " SELECT json_agg(tags) as tags, user_name FROM ways WHERE created_at < '" + date_after.strftime('%Y-%m-%d') +"' AND created_at > '" + event_date.strftime('%Y-%m-%d')+" 00:00:00' GROUP BY user_name"
+    amenity_type_per_user_after_ways = " SELECT json_agg(tags) as tags, user_name FROM ways WHERE created_at < '" + date_after.strftime('%Y-%m-%d') +"' AND created_at > '" + (event_date+relativedelta(days=+1)).strftime('%Y-%m-%d')+" 00:00:00' GROUP BY user_name"
 
     amenity_type_per_user_before_all = "SELECT json_agg(result.tags) as tags, result.user_name FROM (" + amenity_type_per_user_before_nodes + " UNION ALL " + amenity_type_per_user_before_ways+") AS result GROUP BY result.user_name"
 
@@ -503,27 +502,9 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
     refDict = build_dictionary_of_amenities()
     forbiddenEntries = {"yes", "no", "FIXME", "2", "s", "w", "name", "1", "4", "unclassified", "-1"}
 
+    dict_total = [{}, {}, {}, {}, {}]
 
-
-
-
-    dict1 = {}
-    dict2 = {}
-    dict3 = {}
-    dict4 = {}
-    dict5 = {}
-
-    dict_total = [dict1, dict2, dict3, dict4, dict5]
-
-
-
-    dict12 = {}
-    dict22 = {}
-    dict32 = {}
-    dict42 = {}
-    dict52 = {}
-
-    dict_total2 = [dict12, dict22, dict32, dict42, dict52]
+    dict_total2 = [{}, {}, {}, {}, {}]
 
 
     for fields in analysis_before:
@@ -533,10 +514,15 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
                         for data in tag:
                             for detail in data:
                                 if data[detail] in refDict and data[detail] not in forbiddenEntries:
-                                        if data[detail] in dict_total[count]:
-                                            dict_total[count][data[detail]]+=1
-                                        else:
-                                            dict_total[count][data[detail]] =1
+                                    if data[detail] in dict_total[count]:
+                                        dict_total[count][data[detail]]+=1
+                                    else:
+                                        dict_total[count][data[detail]] =1
+                                elif detail in refDict and detail not in forbiddenEntries:
+                                    if detail in dict_total[count]:
+                                        dict_total[count][detail]+=1
+                                    else:
+                                        dict_total[count][detail] =1
 
     for fields in analysis_after:
         for count in range(0,5):
@@ -545,55 +531,29 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
                         for data in tag:
                             for detail in data:
                                 if data[detail] in refDict and data[detail] not in forbiddenEntries:
-                                        if data[detail] in dict_total2[count]:
-                                            dict_total2[count][data[detail]]+=1
-                                        else:
-                                            dict_total2[count][data[detail]] =1
+                                    if data[detail] in dict_total2[count]:
+                                        dict_total2[count][data[detail]]+=1
+                                    else:
+                                        dict_total2[count][data[detail]] =1
+                                elif detail in refDict and detail not in forbiddenEntries:
+                                    if detail in dict_total2[count]:
+                                        dict_total2[count][detail]+=1
+                                    else:
+                                        dict_total2[count][detail] =1
 
-    sorted_dict1 = dict()
-    sorted_dict2 = dict()
-    sorted_dict3 = dict()
-    sorted_dict4 = dict()
-    sorted_dict5 = dict()
-
-
-    sorted_dict_total = [sorted_dict1, sorted_dict2,sorted_dict3, sorted_dict4, sorted_dict5]
-
+    sorted_dict_total = [{}, {}, {}, {}, {}]
 
     for i in range (0,5):
         sorted_dict_total[i] = sorted(dict_total[i].items(), key=operator.itemgetter(1), reverse=True)
 
-
-
-    sorted_dict12 = dict()
-    sorted_dict22 = dict()
-    sorted_dict32 = dict()
-    sorted_dict42 = dict()
-    sorted_dict52 = dict()
-
-    sorted_dict_total2 = [sorted_dict12, sorted_dict22,sorted_dict32, sorted_dict42, sorted_dict52]
+    sorted_dict_total2 = [{}, {}, {}, {}, {}]
 
     for i in range (0,5):
         sorted_dict_total2[i] = sorted(dict_total2[i].items(), key=operator.itemgetter(1), reverse=True)
 
+    total_agg1 = [0,0,0,0,0]
 
-
-    total1=0
-    total2=0
-    total3=0
-    total4=0
-    total5=0
-
-    total_agg1 = [total1, total2, total3, total4, total5]
-
-
-    total12=0
-    total22=0
-    total32=0
-    total42=0
-    total52=0
-
-    total_agg2 = [total12, total22, total32, total42, total52]
+    total_agg2 = [0,0,0,0,0]
 
     for i in range (0,5):
         for j in range (0, len(sorted_dict_total[i])-1):
@@ -603,73 +563,63 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
         for j in range (0, len(sorted_dict_total2[i])-1):
             total_agg2[i]+=sorted_dict_total2[i][j][1]
 
-    #=========================================I still have to loop the rendering of the charts===============================================
-
-    ordonnes1 = []
-    ordonnes2 = []
-    ordonnes3 = []
-    ordonnes = [ordonnes1, ordonnes2, ordonnes3]
-    text1 = []
-    text2 = []
-    text3 = []
-    text = [text1, text2, text3]
+    ordonnes = [[], [], []]
+    text = [[], [], []]
 
     for j in range (0,3):
         for i in range (0,5):
             if total_agg1[i] == 0:
-                ordonnes[j].extend([0])
+                ordonnes[j].append(0)
             else:
-                ordonnes[j].extend([sorted_dict_total[i][j][1]/total_agg1[i]])
-
+                print('group '+str(i)+' top '+str(j)+" "+str(sorted_dict_total[i][j][0]))
+                ordonnes[j].append(sorted_dict_total[i][j][1]/float(total_agg1[i]))
 
     for j in range (0,3):
         for i in range (0,len(sorted_dict_total)):
-            text[j].extend([sorted_dict_total[i][j][0]])
+            text[j].append(sorted_dict_total[i][j][0])
 
-    trace_before1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes1, name='#1', text=text1)
-    trace_before2 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes2, name='#2', text=text2)
-    trace_before3 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes3, name='#3', text=text3)
+    print('------')
+
+    trace_before1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes[0], name='#1', text=text[0])
+    trace_before2 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes[1], name='#2', text=text[1])
+    trace_before3 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes[2], name='#3', text=text[2])
 
     data1 = [trace_before1, trace_before2, trace_before3]
-    layout1 = go.Layout(barmode='group', title= 'top_amenity_focus_before')
+    layout1 = go.Layout(barmode='group', title='Top 3 Most Edited Ammenity Type Before Import',width=1200, height=540,)
     fig1 = go.Figure(data=data1, layout=layout1)
 
-    ordonnes12 = []
-    ordonnes22 = []
-    ordonnes32 = []
-    ordonness = [ordonnes12, ordonnes22, ordonnes32]
-    text12 = []
-    text22 = []
-    text32 = []
-    textt = [text12, text22, text32]
+    ordonness = [[], [], []]
+
+    textt = [[], [], []]
 
     for j in range (0,3):
         for i in range (0,5):
             try:
                 if total_agg2[i] == 0:
-                    ordonness[j].extend([0])
+                    ordonness[j].append(0)
                 else:
-                    ordonness[j].extend([sorted_dict_total2[i][len(sorted_dict_total2[i])-(j+1)][1]/total_agg2[i]])
+                    ordonness[j].append(sorted_dict_total2[i][j][1]/float(total_agg2[i]))
             except(IndexError) as error:
-                ordonness[j].extend("name not provided")
+                ordonness[j].append("name not provided")
 
     for j in range (0,3):
         for i in range (0,5):
             try:
                 if len(sorted_dict_total2[i]) == 0:
-                    textt[j].extend([0])
+                    textt[j].append("")
                 else:
-                    textt[j].extend([sorted_dict_total2[i][len(sorted_dict_total2[i])-(j+1)][0]])
+                    print('group '+str(i)+' top '+str(j)+" "+str(sorted_dict_total2[i][j][0]))
+                    textt[j].append(sorted_dict_total2[i][j][0])
             except(IndexError) as error:
-                textt[j].extend("name not provided")
+                textt[j].append("Undefined")
 
 
-    trace_after1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes12, name='#1', text=text12)
-    trace_after2 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes22, name='#2', text=text22)
-    trace_after3 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes32, name='#3', text=text32)
+    trace_after1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonness[0], name='#1', text=textt[0])
+    trace_after2 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonness[1], name='#2', text=textt[1])
+    trace_after3 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonness[2], name='#3', text=textt[2])
 
     data12 = [trace_after1, trace_after2, trace_after3]
-    layout12 = go.Layout(barmode='group', title= 'top_amenity_focus_after')
+    layout12 = go.Layout(barmode='group', title= 'Top 3 Most Edited Ammenity Type After Import',width=1200, height=540,)
     fig12 = go.Figure(data=data12, layout=layout12)
 
     # # SAVE LOCALLY
@@ -750,23 +700,24 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
 
     # We fill the variables
     for fields in analysis_before:
+        user = fields[1]
         for count in range(0,5):
-            if fields[1] in groups[count]:
+            if user in groups[count]:
                 for tag in fields[0]:
                         for data in tag:
                             for detail in data:
-                                if data[detail] == top1 and data[detail] not in forbiddenEntries:
-                                        if fields[1] in user_ratio_group_total[count]:
-                                            user_ratio_group_total[count][fields[1]]+=1
-                                        else:
-                                            user_ratio_group_total[count][fields[1]] =1
+                                if data[detail] == top1 or detail== top1:
+                                    if user in user_ratio_group_total[count]:
+                                        user_ratio_group_total[count][user]+=1
+                                    else:
+                                        user_ratio_group_total[count][user] = 1
 
 
-                                if data[detail] in refDict and data[detail] not in forbiddenEntries:
-                                        if fields[1] in user_contrib_group_total[count]:
-                                            user_contrib_group_total[count][fields[1]]+=1
-                                        else:
-                                            user_contrib_group_total[count][fields[1]] =1
+                                if (data[detail] in refDict and data[detail] not in forbiddenEntries) or (detail in refDict and detail not in forbiddenEntries):
+                                    if user in user_contrib_group_total[count]:
+                                        user_contrib_group_total[count][user]+=1
+                                    else:
+                                        user_contrib_group_total[count][user] =1
 
     # Same for after
     for fields in analysis_after:
@@ -775,18 +726,18 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
                 for tag in fields[0]:
                         for data in tag:
                             for detail in data:
-                                if data[detail] == top1 and data[detail] not in forbiddenEntries:
-                                        if fields[1] in user_ratio_group_total2[count]:
-                                            user_ratio_group_total2[count][fields[1]]+=1
-                                        else:
-                                            user_ratio_group_total2[count][fields[1]] =1
+                                if data[detail] == top1 or detail == top1:
+                                    if fields[1] in user_ratio_group_total2[count]:
+                                        user_ratio_group_total2[count][fields[1]]+=1
+                                    else:
+                                        user_ratio_group_total2[count][fields[1]] =1
 
 
-                                if data[detail] in refDict and data[detail] not in forbiddenEntries:
-                                        if fields[1] in user_contrib_group_total2[count]:
-                                            user_contrib_group_total2[count][fields[1]]+=1
-                                        else:
-                                            user_contrib_group_total2[count][fields[1]] =1
+                                if (data[detail] in refDict and data[detail] not in forbiddenEntries) or (detail in refDict and detail not in forbiddenEntries):
+                                    if fields[1] in user_contrib_group_total2[count]:
+                                        user_contrib_group_total2[count][fields[1]]+=1
+                                    else:
+                                        user_contrib_group_total2[count][fields[1]] =1
 
     #============================now we can calculate the ratio per user for each group============================================
 
@@ -796,25 +747,25 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
 
     # Calculate ratio before
     for dictio in  user_contrib_group_total:
-        for count in dictio:
+        for user in dictio:
             for i in range(0,5):
-                if count in groups[i]:
-                    if dictio[count]==0:
-                        ratio_total[i][count]=0
+                if user in groups[i]:
+                    if dictio[user]==0:
+                        ratio_total[i][user]=0
                     else:
-                        if len(user_ratio_group_total[i])!=0 and len(dictio)!=0 and count in user_ratio_group_total[i]:
-                            ratio_total[i][count] = user_ratio_group_total[i][count] / dictio[count]
+                        if len(user_ratio_group_total[i])!=0 and user in user_ratio_group_total[i]:
+                            ratio_total[i][user] = user_ratio_group_total[i][user] / float(dictio[user])
 
     #  Calculate ratio after
     for dictio in  user_contrib_group_total2:
-        for count in dictio:
+        for user in dictio:
             for i in range(0,5):
-                if count in groups[i]:
-                    if dictio[count]==0:
-                        ratio_total2[i][count]=0
+                if user in groups[i]:
+                    if dictio[user]==0:
+                        ratio_total2[i][user]=0
                     else:
-                        if len(user_ratio_group_total2[i])!=0 and len(dictio)!=0 and count in user_ratio_group_total2[i]:
-                            ratio_total2[i][count] = user_ratio_group_total2[i][count] / dictio[count]
+                        if len(user_ratio_group_total2[i])!=0 and len(dictio)!=0 and user in user_ratio_group_total2[i]:
+                            ratio_total2[i][user] = user_ratio_group_total2[i][user] / float(dictio[user])
 
     # =============== Now we calculate abnormal return =============
 
@@ -862,8 +813,8 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
         )
 
     layout = go.Layout(
-            title = "Abnormal Return before" ,
-            width=3600, height=2400,
+            title = "Abnormal Return of Ratio Import Main Amenity Type to Total contributions" ,
+            width=1200, height=540,
         )
 
     data = [group_1,group_2,group_3,group_4,group_5]
@@ -998,7 +949,7 @@ def group_analyserv2(db, date_before, event_date):
         print("Checking for new users to remove...")
         for user in expected_per_user:
             if user[1] in all_birthday and date_before < datetime.datetime.strptime(all_birthday[user[1]], '%Y%m%d'):
-                print(user[1]+ ': ' +str(all_birthday[user[1]]) +" is a virgin ... "+ str(date_before.strftime('%Y-%m-%d')) )
+                # print(user[1]+ ': ' +str(all_birthday[user[1]]) +" is a virgin ... "+ str(date_before.strftime('%Y-%m-%d')) )
                 expected_per_user.remove(user)
     # Divides the expected user in 5 groups
     groups = [[],[],[],[],[]]
@@ -1033,6 +984,9 @@ def group_analyserv2(db, date_before, event_date):
             current_sum += expected_per_user[user_counter][0]
             user_counter-=1
 
+    # Print groups count
+    for index in range(0,5):
+        print("Group "+str(index)+": "+str(len(groups[index])))
 
     return groups
 
