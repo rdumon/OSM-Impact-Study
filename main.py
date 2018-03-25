@@ -70,14 +70,7 @@ if not os.path.exists(folder_info_of_city['local']):
     os.makedirs(folder_info_of_city['local'])
 
 # LIST OF THE IMPORT DETECTED FOR THE CITY
-# imports_normal = detectImport(db, city, x, y, folder_info_of_city, googleDriveConnection ,detectionLevel)
-imports_normal = [
-    [datetime.datetime.strptime("2012-04-29",'%Y-%m-%d'), "Tom Chance"],
-    [datetime.datetime.strptime("2010-08-02",'%Y-%m-%d'), "Tom Chance"]
-    # ["2009-08-17", "NaPTAN"],
-    # ["2012-10-27", "busdoc"],
-    # ["2013-01-07", "busdoc"]
-]
+imports_normal = detectImport(db, city, x, y, folder_info_of_city, googleDriveConnection ,detectionLevel)
 
 # EXTRA INFORMATION FOR EACH IMPORT
 imports_normal_extra = imports_report(db, googleDriveConnection, imports_normal, folder_info_of_city)
