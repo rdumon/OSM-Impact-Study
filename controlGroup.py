@@ -1,6 +1,6 @@
 """
 This module controls the main script to run an analysis of the control groups
-""" 
+"""
 
 import sys
 import json
@@ -29,17 +29,11 @@ googleDriveConnection =  googleAPI()
 
 # Name of City Must be passed as an argument
 if len(sys.argv) < 3:
-        print("Usage: python controlGroup.py <DB name> <Path of JSON comparing to> <Detection Level (optionnal)>")
+        print("Usage: python controlGroup.py <DB name> <Path of JSON comparing to>")
         sys.exit(-1)
 
 city = sys.argv[1]
 jsonPath = sys.argv[2]
-
-
-# Optionnaly you can pass the detcetion level
-detectionLevel = 20
-if len(sys.argv) > 3:
-    detectionLevel = int(sys.argv[3])
 
 #  Configure db
 with open("config.json", "r") as jsonFile:
@@ -124,12 +118,3 @@ for iMport in jsondata:
 	#END: ==============RESET THE FOLDERS=======
 	import_dir['local'] = local_folder_root
 	import_dir['google'] = google_folder_root_id
-
-
-
-
-
-
-
-
-

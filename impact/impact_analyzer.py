@@ -128,7 +128,7 @@ def abnormal_return_for_group(db, googleDriveConnection, groups, date_before, ev
             minVal = np.amin(data)
 
     layout = go.Layout(
-        title = "Abnormal Return of Weekly Average Number of Contributions - " +str(diff_actual_user) + " Weeks After Import",
+        title = "Abnormal Return " +str(diff_actual_user) + " Weeks After Event",
         width=1200, height=540,
         yaxis = dict(range = [minVal,maxVal]),
     )
@@ -236,7 +236,7 @@ def contribution_types_gobal_analysis(db, googleDriveConnection, date_before,eve
     )
 
     layout = go.Layout(
-        title = "Evolution of Edits/Delete/Create 6 months Before & After Import",
+        title = "Evolution of Edits/Delete/Create 6 month before&after event",
         width=1200, height=540,
     )
 
@@ -381,7 +381,8 @@ def impact_import_creationtomaintenance_ratio_abnormal_return(db, googleDriveCon
     group_num = 0
     for group in groups:
         for user in group:
-            abnormal_return_per_group[group_num].append(dict_user_actual_ratio[user]-dict_user_expected_ratio[user])
+            if user in dict_user_actual_ratio and user in dict_user_expected_ratio:
+                abnormal_return_per_group[group_num].append(dict_user_actual_ratio[user]-dict_user_expected_ratio[user])
         group_num += 1
 
     group_1 = go.Box(
@@ -425,7 +426,7 @@ def impact_import_creationtomaintenance_ratio_abnormal_return(db, googleDriveCon
             minVal = np.amin(data)
 
     layout = go.Layout(
-        title = "Abnormal Return of Weekly Average Maintenance Ratios - " +str(diff_actual_user) + "  Weeks after Import",
+        title = "Abnormal Return of Maintenance Ratios " +str(diff_actual_user) + " weeks after event",
         width=1200, height=540,
         yaxis = dict(range = [minVal,maxVal]),
 
@@ -474,8 +475,9 @@ def impact_import_creationtomaintenance_ratio_abnormal_return(db, googleDriveCon
 #=========================================================================================#
 def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_before,event_date,date_after, x=None, y=None, import_dir =''):
 
-    #Dates computations
 
+
+    #Dates computations
 
     where_clause = ' '
     if x!=None and y!=None and len(x) == 2 and len(y) == 2:
@@ -629,7 +631,7 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
     trace_before3 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes3, name='#3', text=text3)
 
     data1 = [trace_before1, trace_before2, trace_before3]
-    layout1 = go.Layout(barmode='group', title= 'Top 3 Amenity Types per Group Before Import',width=1200, height=540)
+    layout1 = go.Layout(barmode='group', title= 'top_amenity_focus_before')
     fig1 = go.Figure(data=data1, layout=layout1)
 
     ordonnes12 = []
@@ -667,7 +669,7 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
     trace_after3 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes32, name='#3', text=text32)
 
     data12 = [trace_after1, trace_after2, trace_after3]
-    layout12 = go.Layout(barmode='group', title= 'Top 3 Amenity Types per Group After Import',width=1200, height=540)
+    layout12 = go.Layout(barmode='group', title= 'top_amenity_focus_after')
     fig12 = go.Figure(data=data12, layout=layout12)
 
     # # SAVE LOCALLY
@@ -823,6 +825,7 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
         counter=0
         for user in ratio_total[i]:
             data.append(ratio_total2[i].get(user,(0.0)) - ratio_total[i].get(user,(0.0)))
+
         dataAbnormal.append(data)
 
     #=========================now we plot the box plots================================================
@@ -859,8 +862,8 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
         )
 
     layout = go.Layout(
-            title = "Abnormal Return of Ratio Import Main Amenity Type to Total contributions" ,
-            width=1200, height=540,
+            title = "Abnormal Return before" ,
+            width=3600, height=2400,
         )
 
     data = [group_1,group_2,group_3,group_4,group_5]
@@ -883,22 +886,22 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
     filelocation = import_dir['local']+'/import_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png'
     googleDriveConnection.upload_GoogleDrive(filename,filelocation, import_dir['google'])
 
-    # ==== SET UP FOR JSON
-    filename = 'import_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+".json"
-    filelocation = dir_write_to['local']+"/"+filename
-    
-    # == CHANGE DECIMAL OBJECTS TO FLOAT DATA POINTS
-    for data in dataAbnormal:
-        for i in range(0,len(data)):
-            data[i] = float(data[i])
-    json_info = { "data " : dataAbnormal}
-    
-    #====MAKE JSON======
-    with open(filelocation, "w") as f:
-        json.dump(json_info, f)
-    
-    # UPLOAD TO GOOGLE DRIVE
-    googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'], 'text/json')
+    # # ==== SET UP FOR JSON
+    # filename = "abnormalReturnContrib-"+str(diff_actual_user)+"weekAfter"+".json"
+    # filelocation = dir_write_to['local']+"/"+filename
+    #
+    # # == CHANGE DECIMAL OBJECTS TO FLOAT DATA POINTS
+    # for data in dataAbnormal:
+    #     for i in range(0,len(data)):
+    #         data[i] = float(data[i])
+    # json_info = { "data " : dataAbnormal}
+    #
+    # #====MAKE JSON======
+    # with open(filelocation, "w") as f:
+    #     json.dump(json_info, f)
+    #
+    # # UPLOAD TO GOOGLE DRIVE
+    # googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'], 'text/json')
 
 
 #-----------------------------------------------------------------------------------------------------------------------------
@@ -994,7 +997,7 @@ def group_analyserv2(db, date_before, event_date):
     if date_before > datetime.datetime.strptime('2008-01-01', '%Y-%m-%d'):
         print("Checking for new users to remove...")
         for user in expected_per_user:
-            if date_before < datetime.datetime.strptime(all_birthday[user[1]], '%Y%m%d'):
+            if user[1] in all_birthday and date_before < datetime.datetime.strptime(all_birthday[user[1]], '%Y%m%d'):
                 print(user[1]+ ': ' +str(all_birthday[user[1]]) +" is a virgin ... "+ str(date_before.strftime('%Y-%m-%d')) )
                 expected_per_user.remove(user)
     # Divides the expected user in 5 groups
@@ -1164,7 +1167,6 @@ def survivalAnalysis(db,googleDriveConnection, groups, date_before, event_date, 
     name= "Group 4"
     )
     layout = {
-        'title' : 'Survival Analysis',
         'shapes': [
             # Line Vertical
             {

@@ -44,11 +44,7 @@ def draw_heatMap(db, googleDriveConnection, importInfo = [], x=None, y=None, cit
             mode='markers',
             marker=Marker(
                 size=3,
-<<<<<<< HEAD
                 color='rgb(255,0,0)',
-=======
-                color='rgb(255, 50, 50)',
->>>>>>> 902d3f3007263a4a3fc9f60d936f7be2cff82beb
             )
 
         )
