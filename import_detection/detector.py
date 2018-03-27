@@ -165,7 +165,7 @@ def detectImport(db,cityName='', x = None , y = None, dir_write_to = '', googleD
         if daily_best_contrib['value'][i] >= import_limit:
             detected_imports.append([daily_best_contrib['date'][i],daily_best_contrib['user'][i]])
 
-    return detected_imports
+    return (detected_imports,import_limit)
 
 def find_contribution_type_of_import(db, iMport = [], table =""):
 
@@ -206,7 +206,7 @@ def find_contribution_type_of_import(db, iMport = [], table =""):
 
     return list_top
 
-def imports_report(db, googleDriveConnection, imports= [], dir_write_to = ''):
+def imports_report(db, googleDriveConnection, imports= [], dir_write_to = '',import_limit=0):
 
     imports_information = []
     array = []
@@ -236,6 +236,7 @@ def imports_report(db, googleDriveConnection, imports= [], dir_write_to = ''):
                     json_info['import'+str(import_counter)].append(element.strftime("%Y-%m-%d"))
                 else:
                     json_info['import'+str(import_counter)].append(element)
+    json_info['import_limit'] = int(import_limit)
 
     #====MAKE JSON======
     with open(filelocation, "w") as f:
@@ -253,7 +254,11 @@ plotCred = [
     ['aoussbai','uWPqQZwnbe5MgCrfqk3V'],
     ['JhumanJ','xUuKkx6qmi5j3E75OpgT'],
     ['charlydes','6ufsK3cLlAp4DUzohtm8'],
-    ['kristelle', 'SurOvd0IiMprlmA3k7rp']
+    ['kristelle', 'SurOvd0IiMprlmA3k7rp'],
+    ['llimitover','VQ8YvSNNskEMFjVDm4XN'],
+    ['overlimit','lAKTXvobkgW7oUYEH1Zn'],
+    ['wallahlalimite','1s4kglYj7dDu6QhMJoWX'],
+    ['sorryplotlyineedyou','iOUg5UCjPQdUfjYBWkVv']
 ]
 currentPlotlyAccount = 0
 

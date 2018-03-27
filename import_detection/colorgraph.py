@@ -90,10 +90,14 @@ def draw_heatMap(db, googleDriveConnection, importInfo = [], x=None, y=None, cit
 # =============== Avoid plotly limitation ===============
 plotCred = [
     ['RomainDumon','cJVtOQ4pZHAaQcBeTULV'],
-    ['aoussbai','SDJe7EFNlf9gXGfRQ8Ru'],
+    ['aoussbai','uWPqQZwnbe5MgCrfqk3V'],
     ['JhumanJ','xUuKkx6qmi5j3E75OpgT'],
     ['charlydes','6ufsK3cLlAp4DUzohtm8'],
-    ['kristelle', 'SurOvd0IiMprlmA3k7rp']
+    ['kristelle', 'SurOvd0IiMprlmA3k7rp'],
+    ['llimitover','VQ8YvSNNskEMFjVDm4XN'],
+    ['overlimit','lAKTXvobkgW7oUYEH1Zn'],
+    ['wallahlalimite','1s4kglYj7dDu6QhMJoWX'],
+    ['sorryplotlyineedyou','iOUg5UCjPQdUfjYBWkVv']
 ]
 currentPlotlyAccount = 0
 

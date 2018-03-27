@@ -26,11 +26,14 @@ def analyse_import(db, googleDriveConnection, iMport, x = None, y = None, city =
 	# ================ CREATE DIR FOR GOOGLE DRIVE ==================
 	import_dir['google'] = googleDriveConnection.createFolder(import_date.strftime('%Y-%m-%d'), import_dir['google'])
 
+	# GET THE USER GROUPS
+	# print('---v1---')
+	# groups = group_analyser(db, import_date-relativedelta(months=+6), import_date)
+	# print('---v2---')
+	groups = group_analyserv2(db, import_date-relativedelta(months=+6), import_date)
+
 	# PRINT THE NODES OF THIS IMPORT
 	draw_heatMap(db, googleDriveConnection, iMport, x, y, city, import_dir)
-
-	# GET THE USER GROUPS
-	groups = group_analyserv2(db, import_date-relativedelta(months=+6), import_date)
 
 	# # FOR EACH ANALYSIS WE WANT TO LOOK AT impact afer 1 week, 1 month, 3 month
 	time_intervals = [import_date+relativedelta(weeks=+1), import_date+relativedelta(months=+1), import_date+relativedelta(months=+3)]

@@ -474,7 +474,7 @@ def impact_import_creationtomaintenance_ratio_abnormal_return(db, googleDriveCon
 #=========================================================================================#
 def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_before,event_date,date_after, x=None, y=None, import_dir =''):
 
-
+    print(event_date,date_after,date_before)
 
     #Dates computations
 
@@ -571,14 +571,11 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
             if total_agg1[i] == 0:
                 ordonnes[j].append(0)
             else:
-                print('group '+str(i)+' top '+str(j)+" "+str(sorted_dict_total[i][j][0]))
                 ordonnes[j].append(sorted_dict_total[i][j][1]/float(total_agg1[i]))
 
     for j in range (0,3):
         for i in range (0,len(sorted_dict_total)):
             text[j].append(sorted_dict_total[i][j][0])
-
-    print('------')
 
     trace_before1 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes[0], name='#1', text=text[0])
     trace_before2 = go.Bar( x=['group 1', 'group 2', 'group 3', 'group 4', 'group 5'], y=ordonnes[1], name='#2', text=text[1])
@@ -608,7 +605,6 @@ def top_amenity_evolution_per_group(groups, db,googleDriveConnection, date_befor
                 if len(sorted_dict_total2[i]) == 0:
                     textt[j].append("")
                 else:
-                    print('group '+str(i)+' top '+str(j)+" "+str(sorted_dict_total2[i][j][0]))
                     textt[j].append(sorted_dict_total2[i][j][0])
             except(IndexError) as error:
                 textt[j].append("Undefined")
@@ -837,22 +833,22 @@ def top_import_amenity_abnormal_return(groups, db,googleDriveConnection, date_be
     filelocation = import_dir['local']+'/import_amenity_focus_before'+event_date.strftime('%Y-%m-%d')+'.png'
     googleDriveConnection.upload_GoogleDrive(filename,filelocation, import_dir['google'])
 
-    # # ==== SET UP FOR JSON
-    # filename = "abnormalReturnContrib-"+str(diff_actual_user)+"weekAfter"+".json"
-    # filelocation = dir_write_to['local']+"/"+filename
-    #
-    # # == CHANGE DECIMAL OBJECTS TO FLOAT DATA POINTS
-    # for data in dataAbnormal:
-    #     for i in range(0,len(data)):
-    #         data[i] = float(data[i])
-    # json_info = { "data " : dataAbnormal}
-    #
-    # #====MAKE JSON======
-    # with open(filelocation, "w") as f:
-    #     json.dump(json_info, f)
-    #
-    # # UPLOAD TO GOOGLE DRIVE
-    # googleDriveConnection.upload_GoogleDrive(filename,filelocation, dir_write_to['google'], 'text/json')
+    # ==== SET UP FOR JSON
+    filename = "import_amenity_focus_before-"+event_date.strftime('%Y-%m-%d')+".json"
+    filelocation = import_dir['local']+"/"+filename
+
+    # == CHANGE DECIMAL OBJECTS TO FLOAT DATA POINTS
+    for data in dataAbnormal:
+        for i in range(0,len(data)):
+            data[i] = float(data[i])
+    json_info = { "data " : dataAbnormal}
+
+    #====MAKE JSON======
+    with open(filelocation, "w") as f:
+        json.dump(json_info, f)
+
+    # UPLOAD TO GOOGLE DRIVE
+    googleDriveConnection.upload_GoogleDrive(filename,filelocation, import_dir['google'], 'text/json')
 
 
 #-----------------------------------------------------------------------------------------------------------------------------
@@ -911,18 +907,33 @@ def group_analyser(db, date_before, event_date , x = None, y = None):
     # Divides the expected user in 5 groups
     groups = [[],[],[],[],[]]
 
+    group_contrib = [0,0,0,0,0]
+
     for a in expected_per_user:
         if a[0] > 0.0 and a[0] < 10.0:
             groups[0].append(a[1])
+            group_contrib[0] += a[0]
         if a[0] > 10.0 and a[0] < 100.0:
             groups[1].append(a[1])
+            group_contrib[1] += a[0]
         if a[0] > 100.0 and a[0] < 1000.0:
             groups[2].append(a[1])
+            group_contrib[2] += a[0]
         if a[0] > 1000.0 and a[0] < 10000.0:
             groups[3].append(a[1])
+            group_contrib[3] += a[0]
         if a[0] > 10000.0:
             groups[4].append(a[1])
+            group_contrib[4] += a[0]
 
+    # Print groups count
+    totalContrib = 0
+    for index in range(0,5):
+        totalContrib+=group_contrib[index]
+
+    for index in range(0,5):
+        print("Users in  Group "+str(index)+": "+str( len(groups[index]) ))
+        print("Contrib ratio of Group "+str(index)+": "+str( group_contrib[index]/totalContrib ))
     return groups
 
 def group_analyserv2(db, date_before, event_date):
@@ -965,10 +976,10 @@ def group_analyserv2(db, date_before, event_date):
 
     # ======== BY percentage =============
     threshold.append(total_contributions)                       #5
-    threshold.append(decimal.Decimal(0.95)*total_contributions) #10
-    threshold.append(decimal.Decimal(0.85)*total_contributions) #15
-    threshold.append(decimal.Decimal(0.70)*total_contributions) #20
-    threshold.append(decimal.Decimal(0.50)*total_contributions) #50
+    threshold.append(decimal.Decimal(0.99)*total_contributions) #10
+    threshold.append(decimal.Decimal(0.97)*total_contributions) #15
+    threshold.append(decimal.Decimal(0.90)*total_contributions) #20
+    threshold.append(decimal.Decimal(0.60)*total_contributions) #50
 
     expected_per_user.sort(key= lambda x : int (x[0]))
 
@@ -1172,12 +1183,14 @@ def find_range(data):
 # =============== Avoid plotly limitation ===============
 plotCred = [
     ['RomainDumon','cJVtOQ4pZHAaQcBeTULV'],
-    ['aoussbai','jWkPjojJV8vrsSDbeU8J'],
+    ['aoussbai','uWPqQZwnbe5MgCrfqk3V'],
     ['JhumanJ','xUuKkx6qmi5j3E75OpgT'],
     ['charlydes','6ufsK3cLlAp4DUzohtm8'],
     ['kristelle', 'SurOvd0IiMprlmA3k7rp'],
-    ['romainsucks','sC8LSr0iAnhPI9UN7IF2'],
-    ['xoxoxo','9VKWcbRwovu04Y0E0mA7']
+    ['llimitover','VQ8YvSNNskEMFjVDm4XN'],
+    ['overlimit','lAKTXvobkgW7oUYEH1Zn'],
+    ['wallahlalimite','1s4kglYj7dDu6QhMJoWX'],
+    ['sorryplotlyineedyou','iOUg5UCjPQdUfjYBWkVv']
 ]
 currentPlotlyAccount = 0
 

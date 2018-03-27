@@ -70,10 +70,10 @@ if not os.path.exists(folder_info_of_city['local']):
     os.makedirs(folder_info_of_city['local'])
 
 # LIST OF THE IMPORT DETECTED FOR THE CITY
-imports_normal = detectImport(db, city, x, y, folder_info_of_city, googleDriveConnection ,detectionLevel)
+(imports_normal,import_limit) = detectImport(db, city, x, y, folder_info_of_city, googleDriveConnection ,detectionLevel)
 
 # EXTRA INFORMATION FOR EACH IMPORT
-imports_normal_extra = imports_report(db, googleDriveConnection, imports_normal, folder_info_of_city)
+imports_normal_extra = imports_report(db, googleDriveConnection, imports_normal, folder_info_of_city,import_limit)
 
 print("\n-------------Starting Impact Analysis-------------\n")
 

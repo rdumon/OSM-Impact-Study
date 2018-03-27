@@ -69,52 +69,57 @@ jsondata = {}
 with open(jsonPath, "r") as jsonFile:
     jsondata = json.load(jsonFile)
 
-
 # ===============================================IMPACT ANALYSIS COMPARISON================================================
 
 for iMport in jsondata:
 
-	import_date = datetime.datetime.strptime(jsondata[iMport][0],'%Y-%m-%d')
+    if iMport != 'import_limit':
 
-	# ======= CREATE DIR FOR GRAPHS OF THIS SPECIFIC CITY======
-	import_dir['local'] = import_dir['local'] + '/' +  import_date.strftime('%Y-%m-%d')
-	if not os.path.exists(import_dir['local']):
-		os.makedirs(import_dir['local'])
+    	import_date = datetime.datetime.strptime(jsondata[iMport][0],'%Y-%m-%d')
 
-	# ================ CREATE DIR FOR GOOGLE DRIVE ==================
-	import_dir['google'] = googleDriveConnection.createFolder(import_date.strftime('%Y-%m-%d'), import_dir['google'])
+    	# ======= CREATE DIR FOR GRAPHS OF THIS SPECIFIC CITY======
+    	import_dir['local'] = import_dir['local'] + '/' +  import_date.strftime('%Y-%m-%d')
+    	if not os.path.exists(import_dir['local']):
+    		os.makedirs(import_dir['local'])
 
-	# # GET THE USER GROUPS
-	groups = group_analyserv2(db, import_date-relativedelta(months=+6), import_date)
+    	# ================ CREATE DIR FOR GOOGLE DRIVE ==================
+    	import_dir['google'] = googleDriveConnection.createFolder(import_date.strftime('%Y-%m-%d'), import_dir['google'])
 
-	# # # FOR EACH ANALYSIS WE WANT TO LOOK AT impact afer 1 week, 1 month, 3 month
-	time_intervals = [import_date+relativedelta(weeks=+1), import_date+relativedelta(months=+1), import_date+relativedelta(months=+3)]
+    	# # GET THE USER GROUPS
+    	groups = group_analyserv2(db, import_date-relativedelta(months=+6), import_date)
 
-	# ABNORMAL RETURN OF CONTRIBUTIONS PER GROUP (based on expected return of 6 month before the import)
-	# 1 week, 1 month, 3 month
-	for date_after in time_intervals:
-		abnormal_return_for_group(db, googleDriveConnection, groups, import_date-relativedelta(months=+6) , import_date , date_after, dir_write_to =import_dir)
+    	# # # FOR EACH ANALYSIS WE WANT TO LOOK AT impact afer 1 week, 1 month, 3 month
+    	time_intervals = [import_date+relativedelta(weeks=+1), import_date+relativedelta(months=+1), import_date+relativedelta(months=+3)]
 
-	# # EVOLUTION OF EDITS PERIOD
-	# # 6 month after
-	contribution_types_gobal_analysis(db, googleDriveConnection, import_date-relativedelta(months=+6),import_date,import_date+relativedelta(months=+6), None, None, import_dir)
+    	# ABNORMAL RETURN OF CONTRIBUTIONS PER GROUP (based on expected return of 6 month before the import)
+    	# 1 week, 1 month, 3 month
+    	for date_after in time_intervals:
+    		abnormal_return_for_group(db, googleDriveConnection, groups, import_date-relativedelta(months=+6) , import_date , date_after, dir_write_to =import_dir)
 
-
-	# # ABNORMAL RETURN OF MAINTENANCE RATIO PER GROUP
-	# # 1 week, 1 month, 3 month
-	for date_after in time_intervals:
-		impact_import_creationtomaintenance_ratio_abnormal_return(db, googleDriveConnection, groups,  import_date-relativedelta(months=+6), import_date, date_after, import_dir)
+    	# # EVOLUTION OF EDITS PERIOD
+    	# # 6 month after
+    	contribution_types_gobal_analysis(db, googleDriveConnection, import_date-relativedelta(months=+6),import_date,import_date+relativedelta(months=+6), None, None, import_dir)
 
 
-	# # # # AMENITY EVOLUTION PER GROUP
-	# # # # 1 week, 1 month, 3 month
-	for date_after in time_intervals:
-	 	top_amenity_evolution_per_group(db,googleDriveConnection, import_date-relativedelta(months=+6),import_date,date_after, None, None, import_dir)
+    	# # ABNORMAL RETURN OF MAINTENANCE RATIO PER GROUP
+    	# # 1 week, 1 month, 3 month
+    	for date_after in time_intervals:
+    		impact_import_creationtomaintenance_ratio_abnormal_return(db, googleDriveConnection, groups,  import_date-relativedelta(months=+6), import_date, date_after, import_dir)
 
-	# # # SURVIVAL ANALYSIS
-	# # # 1 week, 1 month, 3 months
-	survivalAnalysis(db,googleDriveConnection, import_date-relativedelta(months=+6),import_date,import_dir)
 
-	#END: ==============RESET THE FOLDERS=======
-	import_dir['local'] = local_folder_root
-	import_dir['google'] = google_folder_root_id
+    	# # # # AMENITY EVOLUTION PER GROUP
+    	# # # # 1 week, 1 month, 3 month
+    	for date_after in time_intervals:
+    	 	top_amenity_evolution_per_group(groups,db,googleDriveConnection, import_date-relativedelta(months=+6),import_date,date_after, None, None, import_dir)
+
+    	# # # SURVIVAL ANALYSIS
+    	# # # 1 week, 1 month, 3 months
+    	survivalAnalysis(db,googleDriveConnection,groups, import_date-relativedelta(months=+6),import_date,import_dir)
+
+
+    	#END: ==============RESET THE FOLDERS=======
+    	import_dir['local'] = local_folder_root
+    	import_dir['google'] = google_folder_root_id
+
+    else:
+        print("Skip import limit.")
